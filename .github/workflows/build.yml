@@ -27,6 +27,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
+          sudo apt install rpm squashfs-tools
           sudo apt install -y \
             flatpak \
             flatpak-builder \

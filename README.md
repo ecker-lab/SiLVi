@@ -1,6 +1,7 @@
 # SiLVi: Simple Interface for Labelling Video Interactions
 
 SiLVi (**S**imple **I**nterface for **L**abelling **V**ideo **I**nteractions) is a lightweight, open-source tool designed specifically to facilitate the annotation of interactions in a way that is both spatially and temporally localized, enabling the generation of training data for computer vision models. 
+
 ![image](./docs/assets/screenshots/silvi_screenshot_label_with_bounding_box.jpg)
 
 ![image](docs/assets/screenshots/silvi_screenshot_change_name.jpg)

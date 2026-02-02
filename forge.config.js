@@ -1,7 +1,21 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
-module.exports = {
+const commonLinuxConfig = {
+  name: 'silvi',
+  productName: 'SiLVi',
+  genericName: 'Video Annotation Tool',
+  title: 'SiLVi',
+  description: 'Simple Interface for Labeling Video Interactions',
+  productDescription: 'SiLVi enables researchers to annotate behaviors and interactions directly within video data, generating structured outputs suitable for training and validating computer vision models.',
+  homepage: 'https://ozan-kanbertay.github.io/SiLVi',
+  maintainer: 'Ozan Kanbertay',
+  icon: 'icons/icon.png',
+  categories: [ 'Science', 'Video' ],
+  section: 'science',
+};
+
+  module.exports = {
   packagerConfig: {
     asar: true,
     icon: 'icons/icon',
@@ -22,10 +36,9 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       config: (arch) => ({
         // An URL to an ICO file to use as the application icon (displayed in Control Panel > Programs and Features).
-        iconUrl: 'https://github.com/ozan-kanbertay/silvi/blob/8ed93440afd5bee3e7e3e75ecfaed5b394bb4015/icons/icon.ico',
+        iconUrl: 'https://raw.githubusercontent.com/ozan-kanbertay/silvi/8ed93440afd5bee3e7e3e75ecfaed5b394bb4015/icons/icon.ico',
         // The ICO file to use as the icon for the generated Setup.exe
         setupIcon: 'icons/icon.ico',
-        // remoteReleases: `https://bitbucket.org/kanbertay/ethowatch/downloads`
       }),
     },
     {
@@ -42,77 +55,18 @@ module.exports = {
         icon: 'icons/icon.icns'
       },
       platforms: ['darwin']
-      
-    },
-    {
-      name: '@electron-forge/maker-flatpak',
-      config: {
-        options: {
-          categories: ['Science', 'Video'],
-          id: 'org.silvi.SiLVi',
-          productName: 'SiLVi',
-          genericName: 'Video Annotation Tool',
-          description: 'Simple Interface for Labeling Video Interactions',
-          icon: 'icons/icon@2x.png',
-          // runtime: 'org.freedesktop.Platform',
-          // runtimeVersion: '24.08',
-          // sdk: 'org.freedesktop.Sdk',
-          // base: 'org.electronjs.Electron2.BaseApp',
-          // baseVersion: '24.08'
-        }
-      }
     },
     {
       name: '@electron-forge/maker-deb',
-      config: {
-        options: {
-          maintainer: 'Ozan Kanbertay',
-          homepage: 'https://github.com/ozan-kanbertay/silvi',
-          icon: 'icons/icon.png',
-          name: 'SiLVi',
-          title: 'SiLVi',
-          summary: 'Simple Interface for Labeling Video Interactions',
-          description: 'SiLVi enables researchers to annotate behaviors and interactions directly within video data, generating structured outputs suitable for training and validating computer vision models.',
-          categories: [ 'Science', 'Video' ]
-        }
-      },
+      config: commonLinuxConfig,
+      platforms: ['linux'],
     },
     {
       name: '@electron-forge/maker-rpm',
-      config: {},
+      config: commonLinuxConfig,
+      platforms: ['linux'],
     },
   ],
-  // publishers: [
-  //   {
-  //     name: '@electron-forge/publisher-github',
-  //     config: {
-  //       repository: {
-  //         owner: 'ozan-kanbertay',
-  //         name: 'silvi',
-  //         authToken: process.env.GITHUB_TOKEN,
-  //       },
-  //       prerelease: false,
-  //       draft: true
-  //     }
-  //   }
-  // ],
-  // publishers: [
-  //   {
-  //     name: '@electron-forge/publisher-bitbucket',
-  //     platforms: ['darwin', 'linux'],
-  //     config: {
-  //       repository: {
-  //         owner: 'kanbertay',
-  //         name: 'ethowatch-updates',
-  //       },
-  //       replaceExistingFiles: true,
-  //       auth: {
-  //         username: process.env.BITBUCKET_USERNAME, 
-  //         appPassword: process.env.BITBUCKET_APP_PASSWORD 
-  //       },
-  //     }
-  //   }
-  // ],
   plugins: [
     {
       name: '@electron-forge/plugin-auto-unpack-natives',
