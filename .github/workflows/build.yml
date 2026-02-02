@@ -7,10 +7,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
+  build:
     strategy: 
-      matrix:
-       os: [ ubuntu-latest ]
+      matrix: 
+        - os: ubuntu-latest
+          arch: x64
+        - os: ubuntu-24.04-arm
+          arch: arm64
+        - os: ubuntu-24.04-arm
+          arch: armv7l
+        - os: windows-latest
+          arch: x64
+        - os: windows-latest
+          arch: ia32
+        - os: windows-11-arm
+          arch: arm64
     runs-on: ${{ matrix.os }}
     permissions:
       actions: write
@@ -25,6 +36,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - name: Install system dependencies
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         run: |
           sudo apt update
           sudo apt install rpm squashfs-tools
@@ -34,47 +46,23 @@ jobs:
             elfutils
           flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo 
           flatpak install --user -y flathub \
-            org.freedesktop.Platform//24.08 \
-            org.freedesktop.Sdk//24.08 \
-            org.electronjs.Electron2.BaseApp//24.08
+            org.freedesktop.Platform//25.08 \
+            org.freedesktop.Sdk//25.08 \
+            org.electronjs.Electron2.BaseApp//25.08
       - name: Install dependencies
         run: npm ci --save-dev
-      - name: Make Linux distributables
+      - name: Make distributables
         run: npm run make --verbose
-      - name: Upload Linux artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: linux-artifacts
-          path: out/make/**
-  build-windows:
-    strategy: 
-      matrix:
-        # os: [ windows-latest, windows-11-arm ]
-        os: [ windows-latest ]
-    runs-on: ${{ matrix.os }}
-    environment: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci --save-dev
-      - name: Make Windows distributables
-        run: npm run make --verbose
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: windows-artifacts
-          path: out/make/**
+          name: build-artifacts-{{ matrix.os }}-${{ matrix.arch }}-{{ github.run_id }}
+          path: out   
   release:
     name: Release as draft
     permissions:
       contents: write
-    needs: [ build-linux, build-windows ]
+    needs: [ build ]
     runs-on: ubuntu-latest
     steps: 
       - name: Download all artifacts
