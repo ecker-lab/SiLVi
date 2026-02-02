@@ -6,14 +6,10 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
+    name: Build for ${{ matrix.os }}
     strategy: 
       matrix: 
-        os: [ ubuntu-latest, windows-latest ]
-        arch: x64
-        include:
-          - os: [ubuntu-24.04-arm, windows-11-arm]
-            arch: arm64
+        os: [ ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm ]
     runs-on: ${{ matrix.os }}
     permissions:
       actions: write
@@ -48,7 +44,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: build-artifacts-{{ matrix.os }}-${{ matrix.arch }}-{{ github.run_id }}
+          name: build-artifacts-{{ matrix.os }}-{{ github.run_id }}
           path: out   
   release:
     name: Release as draft
