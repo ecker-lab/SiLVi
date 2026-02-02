@@ -59,8 +59,8 @@ jobs:
           path: dist
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.5.0
-        overwrite_files: false
         with:
+          overwrite_files: false
           files: |
             dist/**/**
           draft: true
