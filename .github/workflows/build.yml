@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: build-artifacts-${{ matrix.os }}-${{ github.run_id }}
-          path: out   
+          path: out/make/**   
   release:
     name: Release as draft
     permissions:
