@@ -10,9 +10,10 @@ if (require('electron-squirrel-startup')) app.quit();
 updateElectronApp({
   updateSource: {
     type: UpdateSourceType.ElectronPublicUpdateService,
-    repo: 'ozan-kanbertay/silvi'
+    repo: 'ozan-kanbertay/SiLVi'
   },
-  updateInterval: '1 hour',
+  updateInterval: '5 minutes',
+  logger: require('electron-log'),
 });
 
 
