@@ -1,5 +1,4 @@
 name: Build Electron App
-
 on:
   push:
     tags:
@@ -7,22 +6,13 @@ on:
   workflow_dispatch:
 jobs:
   build:
+    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
     strategy: 
       matrix: 
-        os: 
-          - ubuntu-latest
-          - windows-latest
-        arch: 
-          - x64
+        os: [ ubuntu-latest, windows-latest ]
+        arch: x64
         include:
-          - os: ubuntu-24.04-arm
-            arch: arm64
-          - os: ubuntu-24.04-arm
-            arch: armv7l
-            arch: x64
-          - os: windows-latest
-            arch: ia32
-          - os: windows-11-arm
+          - os: [ubuntu-24.04-arm, windows-11-arm]
             arch: arm64
     runs-on: ${{ matrix.os }}
     permissions:
