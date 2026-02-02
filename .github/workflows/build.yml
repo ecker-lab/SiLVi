@@ -28,15 +28,15 @@ jobs:
         run: |
           sudo apt update
           sudo apt install rpm squashfs-tools
-          sudo apt install -y \
-            flatpak \
-            flatpak-builder \
-            elfutils
-          flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo 
-          flatpak install --user -y flathub \
-            org.freedesktop.Platform//25.08 \
-            org.freedesktop.Sdk//25.08 \
-            org.electronjs.Electron2.BaseApp//25.08
+          # sudo apt install -y \
+          #   flatpak \
+          #   flatpak-builder \
+          #   elfutils
+          # flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo 
+          # flatpak install --user -y flathub \
+          #   org.freedesktop.Platform//25.08 \
+          #   org.freedesktop.Sdk//25.08 \
+          #   org.electronjs.Electron2.BaseApp//25.08
       - name: Install dependencies
         run: npm ci --save-dev
       - name: Make distributables
@@ -44,7 +44,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: build-artifacts-{{ matrix.os }}-{{ github.run_id }}
+          name: build-artifacts-${{ matrix.os }}-${{ github.run_id }}
           path: out   
   release:
     name: Release as draft
