@@ -13,7 +13,6 @@ updateElectronApp({
     repo: 'ozan-kanbertay/SiLVi'
   },
   updateInterval: '5 minutes',
-  logger: require('electron-log'),
 });
 
 
