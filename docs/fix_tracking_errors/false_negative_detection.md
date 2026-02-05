@@ -15,31 +15,30 @@ nav_order: 4
 
 If a subject is not detected by tracking, you can fix it by drawing a bounding box around the undetected subject. The same procedure can also be used if you want to produce a tracking file for a video from scratch. 
 
-## Drawing Bounding Boxes
-
-First enable the drawing mode.
+## Creating a New Track
 
 <video src="../assets/videos/drawing_mode_toggle.mp4" class="help-video" muted loop autoplay></video>
 
-Draw a rectangle around the subject of interest. A menu with input option will appear next to the rectangle you just draw.
-                    
-Assign a class to the bounding box by either selecting an existing one or creating a new one. Optionally, change the pre-assigned color for the newly created class. 
+1. Make sure the drawing mode is enabled.
+1. Draw a rectangle around the subject of interest. A menu with input option will appear next to the rectangle you just draw.
+1. Assign a class to the bounding box by either selecting an existing one or creating a new one. Optionally, change the pre-assigned color for the newly created class. 
+1. You can either create single bounding box on the current video frame or interpolate multiple boxes between two video frames.
+1. To create a single bounding box for the new track, first make sure the <span class="badge text-bg-light">Interpolate</span> option is deselected. Then, click <span class="badge text-bg-primary">Save</span> to confirm your choice. 
 
 <video src="../assets/videos/drawing_single_box.mp4" class="help-video" muted loop autoplay></video>
 
-You can opt to a create single bounding box for the current video frame or interpolate multiple boxes between two video frames.
-                    
-If you wish to create a single bounding box, first make sure the <strong>Interpolate</strong> option is deselected. Then, click <strong>Save</strong> to confirm your choice. 
-
 ## Interpolation
-
-To interpolate multiple bounding boxes, make sure the <strong>Interpolate</strong> option is selected and click <strong>Save</strong> to proceed.
 
 <video src="../assets/videos/interpolation.mp4" class="help-video" muted loop autoplay></video>
 
-Skip backward or forward to the frame where you wish the interpolation to continue. If you wish to end the interpolation here, click <strong>End</strong>.
+1. To interpolate multiple bounding boxes, make sure the <span class="badge text-bg-light">Interpolate</span> option is selected and click <span class="badge text-bg-primary">Save</span> to proceed.
 
-If you wish to continue the interpolation with the same class and track ID, click <strong>Continue</strong>. Then, repeat the previous step until you reach to the frame where the interpolation should end. Finally, click <strong>End</strong> to complete the interpolation.
+1. Skip backward or forward to the frame where you wish the interpolation to continue.
+1. Draw another bounding box for the same subject.
+1. To end the interpolation here, click <span class="badge text-bg-danger">End</span>.
+1. To continue the interpolation further in other frames with the same class and track ID, click <span class="badge text-bg-primary">Continue</span>. 
+1. Repeat the previous step until you reach to the frame where the interpolation should end. 
+1. Click <span class="badge text-bg-danger">End</span> to complete the interpolation.
 
 You can review the interpolated bounding boxes and correct any of them later by resizing if necessary.
 

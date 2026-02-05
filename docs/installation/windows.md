@@ -5,20 +5,20 @@ nav_order: 2
 ---
 
 # Windows
-There are two ways to use the app on Windows, either via the Microsoft Store or by downloading the executable [directly](./installers/Windows/). 
+There are two ways to use the app on Windows, either via the Microsoft Store or by downloading the executable directly. 
 
 Both versions are functionally identical. However, they differ in how they are installed and receive automatic updates.
 
 It might take up to a few days to get the updates on the Microsoft Store because of the additional verification process done by Microsoft. The EXE version gets the updates within minutes.
 
 ## Microsoft Store Version
-The app is in the testing phase and thus not open to the public yet in the Microsoft Store. To use this version, testers of the app need to be added manually. If you want to be one of the testers, please contact us. An email address associated with a Microsoft account with which you can log in to the Microsoft Store is needed. After this step, you will be able to download the app via the following link: [ms-windows-store://pdp/?productid=9PC1BT8B9TW3](ms-windows-store://pdp/?productid=9PC1BT8B9TW3)
+Microsoft Store version of SiLVi is currently under preparation. 
+<!-- The app is in the testing phase and thus not open to the public yet in the Microsoft Store. To use this version, testers of the app need to be added manually. If you want to be one of the testers, please contact us. An email address associated with a Microsoft account with which you can log in to the Microsoft Store is needed. After this step, you will be able to download the app via the following link: [ms-windows-store://pdp/?productid=9PC1BT8B9TW3](ms-windows-store://pdp/?productid=9PC1BT8B9TW3) -->
 
 ## EXE Version
 On Windows, any app outside the Microsoft Store needs to be code-signed to be marked safe by the operating system. Unfortunately, certificate authorities only issue these code-signing certificates to registered companies. Therefore, for the first installation, permission to run the app must be granted by the user. 
 
 Please follow the instructions below for the installation of the app on Windows. These steps need to be done only once. Each subsequent update will be downloaded and installed by the app automatically.
-
 
 <div align="center">
 

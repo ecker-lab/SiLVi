@@ -1,11 +1,17 @@
 ---
-title: Misidentification
+title: Misclassification
 parent: Fixing Tracking and Identification Errors
-nav_order: 1
+nav_order: 0
 ---
 
 # Fixing Misclassification
 
-Click on the track and go to the tracking panel. Select the correct class from the drop-down menu in the “Change class” option.
+If a subject is misclassified by the tracking model, you can correct it by changing the class IDs of the bounding boxes belonging to the subject of interest.
 
-<video src="../assets/videos/label_individual_via_right_click.mp4" class="help-video" muted loop autoplay></video>
+1. Click on the bounding box.
+1. Go to the tracking panel. 
+1. Select the <span class="badge text-bg-light">Change class</span> option.
+1. Select the correct class ID/name from the drop-down menu. 
+1. Click <span class="badge text-bg-primary">Save</span> to confirm.
+
+<video src="../assets/videos/change_class.mp4" class="help-video" muted loop autoplay></video>

@@ -22,3 +22,4 @@ Alternatively, the extended format additionally includes individual ID and confi
 [^MOTChallenge]: [MOTChallenge: A Benchmark for Single-Camera Multiple Target Tracking](https://doi.org/10.48550/arXiv.2010.07548)
 
 [^PriMAT]: [PriMAT: A robust multi-animal tracking model for primates in the wild](https://doi.org/10.1101/2024.08.21.607881)
+
