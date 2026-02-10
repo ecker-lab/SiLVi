@@ -9,7 +9,7 @@ jobs:
     name: Build for ${{ matrix.os }}
     strategy: 
       matrix: 
-        os: [ ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm ]
+        os: [ ubuntu-latest, windows-latest, ubuntu-24.04-arm ]
     runs-on: ${{ matrix.os }}
     permissions:
       actions: write
@@ -60,7 +60,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.5.0
         with:
-          overwrite_files: true
+          overwrite_files: false
           files: |
             dist/**/**
           draft: true
