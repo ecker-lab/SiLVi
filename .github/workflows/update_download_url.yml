@@ -1,0 +1,104 @@
+name: Update docs with latest release links
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Get latest release assets
+        id: assets
+        run: |
+          # Get latest release
+          RELEASE_JSON=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          
+          # Extract x86_64 RPM URL
+          RPM_X86_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | test("silvi-.*\\.x86_64\\.rpm")) | .browser_download_url' | head -1)
+          echo "RPM_X86_URL=$RPM_X86_URL" >> $GITHUB_ENV
+          
+          # Extract arm64 RPM URL
+          RPM_ARM_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | test("silvi-.*\\.arm64\\.rpm")) | .browser_download_url'| head -1)
+          echo "RPM_ARM_URL=$RPM_ARM_URL" >> $GITHUB_ENV
+
+          # Extract x86_64 DEB URL
+          DEB_X86_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | test("silvi-.*x86_64\\.deb")) | .browser_download_url' | head -1)
+          echo "DEB_X86_URL=$DEB_X86_URL" >> $GITHUB_ENV
+
+          # Extract arm64 DEB URL
+          DEB_ARM_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | test("silvi-.*arm64\\.deb")) | .browser_download_url' | head -1)
+          echo "DEB_ARM_URL=$DEB_ARM_URL" >> $GITHUB_ENV
+
+          # Extract EXE URL
+          EXE_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | test("silvi-.*\\.exe")) | .browser_download_url' | head -1)
+          echo "EXE_URL=$EXE_URL" >> $GITHUB_ENV
+
+          # Extract arm64 DMG URL
+          DMG_ARM_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | test("silvi-.*arm64\\.dmg")) | .browser_download_url' | head -1)
+          echo "DMG_ARM_URL=$DMG_ARM_URL" >> $GITHUB_ENV
+
+          # Extract x64 DMG URL
+          DMG_X64_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | test("silvi-.*x64\\.dmg")) | .browser_download_url' | head -1)
+          echo "DMG_X64_URL=$DMG_X64_URL" >> $GITHUB_ENV
+
+      - name: Update the Documentation
+        run: |
+          # Define file types to search
+          FILE_TYPES=("*.md" "*.html" "*.txt" "*.markdown")
+
+          # Loop through all files in docs/
+          for file_type in "${FILE_TYPES[@]}"; do
+            find docs -type f -name "$file_type" | while read file; do
+              echo "Updating $file..."
+
+              # Replace placeholder for x86_64 RPM
+              if [ -n "$X86_RPM_URL" ]; then
+                sed -i "s|https://github.com/[^/]*\/[^/]*\/releases\/download/latest/silvi-.*\\.x86_64\\.rpm|$X86_RPM_URL|g" "$file"
+              fi
+
+              # Replace placeholder for arm64 RPM
+              if [ -n "$ARM_RPM_URL" ]; then
+                sed -i "s|https://github.com/[^/]*\/[^/]*\/releases\/download/latest/silvi-.*\\.arm64\\.rpm|$ARM_RPM_URL|g" "$file"
+              fi
+
+              # Replace placeholder for x86_64 DEB
+              if [ -n "$DEB_X86_URL" ]; then
+                sed -i "s|https://github.com/[^/]*\/[^/]*\/releases\/download/latest/silvi-.*x86_64\\.deb|$DEB_X86_URL|g" "$file"
+              fi
+
+              # Replace placeholder for arm64 DEB
+              if [ -n "$DEB_ARM_URL" ]; then
+                sed -i "s|https://github.com/[^/]*\/[^/]*\/releases\/download/latest/silvi-.*arm64\\.deb|$DEB_ARM_URL|g" "$file"
+              fi
+
+              # Replace placeholder for EXE
+              if [ -n "$EXE_URL" ]; then
+                sed -i "s|https://github.com/[^/]*\/[^/]*\/releases\/download/latest/silvi-.*\\.exe|$EXE_URL|g" "$file"
+              fi
+
+              # Replace placeholder for x64 DMG
+              if [ -n "$DMG_X64_URL" ]; then
+                sed -i "s|https://github.com/[^/]*\/[^/]*\/releases\/download/latest/silvi-.*x64\\.dmg|$DMG_X64_URL|g" "$file"
+              fi
+
+              # Replace placeholder for arm64 DMG
+              if [ -n "$DMG_ARM_URL" ]; then
+                sed -i "s|https://github.com/[^/]*\/[^/]*\/releases\/download/latest/silvi-.*arm64\\.dmg|$DMG_ARM_URL|g" "$file"
+              fi
+            done
+          done
+
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/
+          git status
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit."
+          else
+            git commit -m "docs: update download links to latest release"
+            git push
+          fi

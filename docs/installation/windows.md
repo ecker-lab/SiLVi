@@ -18,31 +18,35 @@ Microsoft Store version of SiLVi is currently under preparation.
 ## EXE Version
 On Windows, any app outside the Microsoft Store needs to be code-signed to be marked safe by the operating system. Unfortunately, certificate authorities only issue these code-signing certificates to registered companies. Therefore, for the first installation, permission to run the app must be granted by the user. 
 
+<div class="text-center mb-3">
+  <a class="btn btn-primary text-center" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/latest/silvi-*.exe" role="button"><i class="bi bi-windows"></i> Download for Windows</a>
+</div>
+
 Please follow the instructions below for the installation of the app on Windows. These steps need to be done only once. Each subsequent update will be downloaded and installed by the app automatically.
 
-<div align="center">
+<div class="text-center">
 
-<img src="../assets/screenshots/win_install_1.png" alt="Windows Installation Step 1" class="windows-screenshot">
+  <img src="../assets/screenshots/win_install_1.png" alt="Windows Installation Step 1" class="windows-screenshot">
 
-<p>On your browser, click the three dots next to the downloaded file and select *Keep*.</p>
+  <p>On your browser, click the three dots next to the downloaded file and select *Keep*.</p>
 
-<img src="../assets/screenshots/win_install_2.png" alt="Windows Installation Step 2" class="windows-screenshot">
+  <img src="../assets/screenshots/win_install_2.png" alt="Windows Installation Step 2" class="windows-screenshot">
 
-<p>Click <strong>Show more.</strong></p>
+  <p>Click <strong>Show more.</strong></p>
 
-<img src="../assets/screenshots/win_install_3.png" alt="Windows Installation Step 3" 
-class="windows-screenshot">
+  <img src="../assets/screenshots/win_install_3.png" alt="Windows Installation Step 3" 
+  class="windows-screenshot">
 
-<p>Select <strong>Keep anyway.</strong></p>
+  <p>Select <strong>Keep anyway.</strong></p>
 
-<img src="../assets/screenshots/win_install_4.png" alt="Windows Installation Step 4" 
-class="windows-screenshot">
+  <img src="../assets/screenshots/win_install_4.png" alt="Windows Installation Step 4" 
+  class="windows-screenshot">
 
-<p>Click <strong>More info</strong> on the Microsoft Defender SmartScreen prompt.</p>
+  <p>Click <strong>More info</strong> on the Microsoft Defender SmartScreen prompt.</p>
 
-<img src="../assets/screenshots/win_install_5.png" alt="Windows Installation Step 5" 
-class="windows-screenshot">
+  <img src="../assets/screenshots/win_install_5.png" alt="Windows Installation Step 5" 
+  class="windows-screenshot">
 
-<p>Finally select <strong>Run anyway.</strong></p>
+  <p>Finally select <strong>Run anyway.</strong></p>
 
 </div>

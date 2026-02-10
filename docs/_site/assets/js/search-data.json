@@ -148,28 +148,28 @@
   },"21": {
     "doc": "Linux",
     "title": "Linux",
-    "content": "Linux installers are available for Debian- and RPM-based distributions on both x64 and ARM architectures. ",
+    "content": "Linux installers are available for Debian- and RPM-based distributions on both x64 and ARM architectures. Run arch or uname -m to confirm your architecture. For example, if the output is x86_64, it means you have a 64-bit Intel/AMD-based system. Similarly, if the output is aarch64, you have a 64-bit ARM-based system. ",
     "url": "/installation/linux.html",
     
     "relUrl": "/installation/linux.html"
   },"22": {
     "doc": "Linux",
     "title": "Debian-Based Distributions",
-    "content": "For Ubuntu and other Debian-based Linux distributions, download the deb file compatible with your computer architecture. Run arch or uname -m to confirm your architecture. For example, if the output is x86_64, it means you have a 64-bit Intel/AMD-based system. Similarly, if the output is aarch64, you have a 64-bit ARM-based system. On Ubuntu, if GNOME Software has already been installed, you can simply double click on the file to install it. Alternatively, you can execute the following command: . sudo apt install $PATH_TO_DEB_FILE . ",
+    "content": "For Ubuntu and other Debian-based Linux distributions, download the deb file compatible with your computer architecture. Download for Debian/Ubuntu x64 Download for Debian/Ubuntu ARM64 On Ubuntu, if GNOME Software has already been installed, you can simply double click on the file to install it. Alternatively, you can execute the following command: . sudo apt install $PATH_TO_DEB_FILE . ",
     "url": "/installation/linux.html#debian-based-distributions",
     
     "relUrl": "/installation/linux.html#debian-based-distributions"
   },"23": {
     "doc": "Linux",
     "title": "RPM-Based Distributions",
-    "content": "On RPM-based systems, you can install SiLVi with dnf: . sudo dnf install $PATH_TO_RPM_FILE . The Linux version has been briefly tested only on Ubuntu 24.04 LTS so far. ",
+    "content": "For Fedora, RHEL, CentOS, SUSE and other RPM-based Linux distributions, download the RPM file compatible with your computer architecture. Download for RPM ARM64 Download for RPM x64 On RPM-based systems, you can install SiLVi with your package manager. For example with dnf, install it with: . sudo dnf install $PATH_TO_RPM_FILE . The Linux version has been briefly tested only on Ubuntu 24.04 LTS so far. ",
     "url": "/installation/linux.html#rpm-based-distributions",
     
     "relUrl": "/installation/linux.html#rpm-based-distributions"
   },"24": {
     "doc": "macOS",
     "title": "macOS",
-    "content": "If you own a MacBook based on ARM architecture (M1 or later), download the installer ending with “arm64” in its names. For older Macs using Intel processor, choose the installer with “x64” in its name. MacOS are code signed. The installation and automatic updates should work without an issue. ",
+    "content": "MacOS are code signed. The installation and automatic updates should work without an issue. Download for macOS ARM64 Download for macOS x64 If you own a Mac based on ARM architecture (M1 or later), download the installer with ARM64 in its name. For older Macs with an Intel processor, choose the installer with x64 in its name. ",
     "url": "/installation/macos.html",
     
     "relUrl": "/installation/macos.html"
@@ -281,7 +281,7 @@
   },"40": {
     "doc": "Windows",
     "title": "EXE Version",
-    "content": "On Windows, any app outside the Microsoft Store needs to be code-signed to be marked safe by the operating system. Unfortunately, certificate authorities only issue these code-signing certificates to registered companies. Therefore, for the first installation, permission to run the app must be granted by the user. Please follow the instructions below for the installation of the app on Windows. These steps need to be done only once. Each subsequent update will be downloaded and installed by the app automatically. On your browser, click the three dots next to the downloaded file and select *Keep*. Click Show more. Select Keep anyway. Click More info on the Microsoft Defender SmartScreen prompt. Finally select Run anyway. ",
+    "content": "On Windows, any app outside the Microsoft Store needs to be code-signed to be marked safe by the operating system. Unfortunately, certificate authorities only issue these code-signing certificates to registered companies. Therefore, for the first installation, permission to run the app must be granted by the user. Download for Windows Please follow the instructions below for the installation of the app on Windows. These steps need to be done only once. Each subsequent update will be downloaded and installed by the app automatically. On your browser, click the three dots next to the downloaded file and select *Keep*. Click Show more. Select Keep anyway. Click More info on the Microsoft Defender SmartScreen prompt. Finally select Run anyway. ",
     "url": "/installation/windows.html#exe-version",
     
     "relUrl": "/installation/windows.html#exe-version"
