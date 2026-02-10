@@ -12,4 +12,4 @@ defaults:
     values:
       layout: "default"
 aux_links:
-  GitHub Repository: https://github.com/ozan-kanbertay/silvi
+  '<i class="bi bi-github me-1"></i>GitHub Repository': https://github.com/ozan-kanbertay/silvi

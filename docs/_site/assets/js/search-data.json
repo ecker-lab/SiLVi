@@ -1,291 +1,319 @@
 {"0": {
+    "doc": "Contact",
+    "title": "Contact",
+    "content": "For general inquiries, please use this link. For software issues, please open an issue. For specific questions, please contact the contributors directly. ",
+    "url": "/contact.html",
+    
+    "relUrl": "/contact.html"
+  },"1": {
+    "doc": "Credits",
+    "title": "Credits",
+    "content": " ",
+    "url": "/credits.html",
+    
+    "relUrl": "/credits.html"
+  },"2": {
+    "doc": "Credits",
+    "title": "Funding",
+    "content": "This project was funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) via project number 454648639 — SFB 1528. ",
+    "url": "/credits.html#funding",
+    
+    "relUrl": "/credits.html#funding"
+  },"3": {
+    "doc": "Credits",
+    "title": "Development",
+    "content": "Ozan Kanbertay developed the software and wrote the documentation. Richard Vogg and Alexander Ecker conceived the project and provided overall supervision. Richard Vogg designed the initial software prototype. Elif Karakoc, Claudia Fichtel, and Peter M. Kappeler collected the data, supervised the annotation process for the use case, and provided feedback during software development. Alexander Ecker, Claudia Fichtel, and Peter M. Kappeler secured funding. We thank student assistants Joana Niedner, Lucia Fricke, Lea Hoffmann, and Solene Joubert for their assistance in annotating the video data and providing valuable feedback on the application. The webpage uses the documentation theme Just the Docs. ",
+    "url": "/credits.html#development",
+    
+    "relUrl": "/credits.html#development"
+  },"4": {
     "doc": "False Negative Detection",
     "title": "Fixing False Negative Detection",
     "content": " ",
     "url": "/fix_tracking_errors/false_negative_detection.html#fixing-false-negative-detection",
     
     "relUrl": "/fix_tracking_errors/false_negative_detection.html#fixing-false-negative-detection"
-  },"1": {
+  },"5": {
     "doc": "False Negative Detection",
     "title": "Table of Contents",
     "content": ". | Creating a New Track | Interpolation | . If a subject is not detected by tracking, you can fix it by drawing a bounding box around the undetected subject. The same procedure can also be used if you want to produce a tracking file for a video from scratch. ",
     "url": "/fix_tracking_errors/false_negative_detection.html#table-of-contents",
     
     "relUrl": "/fix_tracking_errors/false_negative_detection.html#table-of-contents"
-  },"2": {
+  },"6": {
     "doc": "False Negative Detection",
     "title": "Creating a New Track",
     "content": ". | Make sure the drawing mode is enabled. | Draw a rectangle around the subject of interest. A menu with input option will appear next to the rectangle you just draw. | Assign a class to the bounding box by either selecting an existing one or creating a new one. Optionally, change the pre-assigned color for the newly created class. | You can either create single bounding box on the current video frame or interpolate multiple boxes between two video frames. | To create a single bounding box for the new track, first make sure the Interpolate option is deselected. Then, click Save to confirm your choice. | . ",
     "url": "/fix_tracking_errors/false_negative_detection.html#creating-a-new-track",
     
     "relUrl": "/fix_tracking_errors/false_negative_detection.html#creating-a-new-track"
-  },"3": {
+  },"7": {
     "doc": "False Negative Detection",
     "title": "Interpolation",
     "content": ". | To interpolate multiple bounding boxes, make sure the Interpolate option is selected and click Save to proceed. | Skip backward or forward to the frame where you wish the interpolation to continue. | Draw another bounding box for the same subject. | To end the interpolation here, click End. | To continue the interpolation further in other frames with the same class and track ID, click Continue. | Repeat the previous step until you reach to the frame where the interpolation should end. | Click End to complete the interpolation. | . You can review the interpolated bounding boxes and correct any of them later by resizing if necessary. ",
     "url": "/fix_tracking_errors/false_negative_detection.html#interpolation",
     
     "relUrl": "/fix_tracking_errors/false_negative_detection.html#interpolation"
-  },"4": {
+  },"8": {
     "doc": "False Negative Detection",
     "title": "False Negative Detection",
     "content": " ",
     "url": "/fix_tracking_errors/false_negative_detection.html",
     
     "relUrl": "/fix_tracking_errors/false_negative_detection.html"
-  },"5": {
+  },"9": {
     "doc": "False Positive Detection",
     "title": "Fixing False Positive Detection",
     "content": ". | Click on the track. | Go to the tracking panel. | Select the Remove track option. | Under the Apply changes for section. | To remove all instances of the track, select All frames from the beginning | To remove the instances of the track only after the current frame, select All frames after this frame. | . | Click Save to confirm. | . ",
     "url": "/fix_tracking_errors/false_positive_detection.html#fixing-false-positive-detection",
     
     "relUrl": "/fix_tracking_errors/false_positive_detection.html#fixing-false-positive-detection"
-  },"6": {
+  },"10": {
     "doc": "False Positive Detection",
     "title": "False Positive Detection",
     "content": " ",
     "url": "/fix_tracking_errors/false_positive_detection.html",
     
     "relUrl": "/fix_tracking_errors/false_positive_detection.html"
-  },"7": {
+  },"11": {
     "doc": "File Formats",
     "title": "File Formats",
     "content": " ",
     "url": "/file_formats.html",
     
     "relUrl": "/file_formats.html"
-  },"8": {
+  },"12": {
     "doc": "File Formats",
     "title": "Name Files",
     "content": "To start labeling behaviors, text files for actions types or ethogram and individual names must be uploaded first. Each item in these files must be separated with a comma. For consistency, please do not put a space within an item. For example, if an item in the action list describes a “successful push”, write down either “successful_push” or “SuccessfulPush”. Other than this, there is no restriction on the names. ",
     "url": "/file_formats.html#name-files",
     
     "relUrl": "/file_formats.html#name-files"
-  },"9": {
+  },"13": {
     "doc": "File Formats",
     "title": "Tracking Files",
     "content": "To create spatially localized annotations of interactions, a tracking file for the main video can be imported into the app. The tracking file should either be in simplified or extended MOT Challenge format1. The simplified format consists of a text file with one line per detection containing frame number, object ID, bounding box coordinates (with the top left corner of the bounding box, width and height), detection confidence and object class. Alternatively, the extended format additionally includes individual ID and confidence. Such a tracking file can be obtained by processing a video with a multi-animal tracking model such as PriMAT2. Animal detection and tracking are currently not performed by SILVI but are assumed to be a separate pre-processing step. | MOTChallenge: A Benchmark for Single-Camera Multiple Target Tracking &#8617; . | PriMAT: A robust multi-animal tracking model for primates in the wild &#8617; . | . ",
     "url": "/file_formats.html#tracking-files",
     
     "relUrl": "/file_formats.html#tracking-files"
-  },"10": {
+  },"14": {
     "doc": "ID Switch",
     "title": "Fixing ID Switch",
     "content": ". | Click on the track on the frame where the ID switch is happening. | Go to the tracking panel. | Select Assign the next unused ID | Under the Apply changes for section, select All frames after this frame. | Click Save to confirm. | . ",
     "url": "/fix_tracking_errors/id_switch.html#fixing-id-switch",
     
     "relUrl": "/fix_tracking_errors/id_switch.html#fixing-id-switch"
-  },"11": {
+  },"15": {
     "doc": "ID Switch",
     "title": "ID Switch",
     "content": " ",
     "url": "/fix_tracking_errors/id_switch.html",
     
     "relUrl": "/fix_tracking_errors/id_switch.html"
-  },"12": {
+  },"16": {
     "doc": "Home",
     "title": "SiLVi: Simple Interface for Labelling Video Interactions",
     "content": "SiLVi is a lightweight, open-source tool designed specifically to facilitate the annotation of video interactions in a way that is both spatially and temporally localized, enabling the generation of training data for computer vision models. By supporting precise annotations of both actions and interactions across individuals, SiLVi empowers researchers to move beyond individual-centric behavioral models toward richer representations of social behavior. Apart from this main contribution, SiLVi also allows for labeling individual IDs and annotating or correcting tracks. You can read our preprint here. If you use SiLVi in your research, please cite it. ",
     "url": "/#silvi-simple-interface-for-labelling-video-interactions",
     
     "relUrl": "/#silvi-simple-interface-for-labelling-video-interactions"
-  },"13": {
+  },"17": {
     "doc": "Home",
     "title": "Home",
     "content": " ",
     "url": "/",
     
     "relUrl": "/"
-  },"14": {
+  },"18": {
     "doc": "Fixing Tracking and Identification Errors",
     "title": "Fixing Tracking and Identification Errors",
     "content": "Common tracking and identification errors and how to fix them . | Type of Error | Example | How to Fix | . | Misclassification | A lemur is labeled with class “feeding box”. | Click on the track and go to the tracking panel. Select “lemur” from the drop-down menu in the “Change class” option. | . | Misidentification | The individual named George is assigned the ID Genovesa. | Right-click on the track and select George from the drop-down menu. | . | ID switch | The track starts on the correct individual, but continues on a different individual. | Click on the track on the frame where the ID switch is happening and go to the tracking panel. Select “Assign the next unused ID” and choose “All frames after this frame”. | . | False positive detection | A bounding box is produced at a location without an object. | Click on the track, go to the tracking panel. Select “Remove track”. | . | False negative detection | An object is not detected. | Enable drawing mode and draw a bounding box around the undetected individual. If the movement trajectory is linear, go to the last frame of the movement, draw a new bounding box, and select “Interpolate”. | . | Partial detection | An object is detected but the bounding box is not precise. | Enable drawing mode and resize the bounding box by dragging the handles on its corners. | . ",
     "url": "/fix_tracking_errors/",
     
     "relUrl": "/fix_tracking_errors/"
-  },"15": {
+  },"19": {
     "doc": "Labeling Interactions",
     "title": "Labeling Interactions",
     "content": "You can record your observation either by interacting with bounding boxes or by using keyboard shortcuts. To record your observations by interacting with bounding boxes, you should either import a tracking file or draw bounding boxes around the subjects of interest. To utilize keyboard shortcut, you should first upload files for actions and individuals in the required format. After you upload a file, a keyboard shortcut will be generated automatically for each item in the file. You can also change these shortcuts later. ",
     "url": "/labeling_interactions/",
     
     "relUrl": "/labeling_interactions/"
-  },"16": {
+  },"20": {
     "doc": "Installation",
     "title": "Installation",
     "content": "SilVi is available for macOS, Windows, and Linux. Both x64 and ARM architectures are supported. ",
     "url": "/installation/",
     
     "relUrl": "/installation/"
-  },"17": {
+  },"21": {
     "doc": "Labeling with Bounding Boxes",
     "title": "Labeling with Bounding Boxes",
     "content": "You can record your observations by interacting with bounding boxes in addition to using keyboard shortcuts. For this, you should either import a tracking file or draw bounding boxes around the subjects of interest. ",
     "url": "/labeling_interactions/label_with_bounding_boxes.html",
     
     "relUrl": "/labeling_interactions/label_with_bounding_boxes.html"
-  },"18": {
+  },"22": {
     "doc": "Labeling with Keyboard Shortcuts",
     "title": "Labeling with Keyboard Shortcuts",
     "content": "First, make sure to upload files for actions and individuals in the required format. After you upload a file, a keyboard shortcut will be generated automatically for each item in the file. You can also change these shortcuts later. To start recording behaviors with keyboard shortcuts, first enable the labeling mode. You can do this either by toggling the relevant button on the main view panel or by pressing the assigned shortcut. When you are typing, the labeling is disabled automatically to prevent any clashes with the shortcuts. Each observation of a behavior consists of a subject, an action and optionally a target. The frame in which you press the shortcut for a subject will be recorded as the start frame. Similarly, the frame in which you press the shortcut assigned to a target or ending an observation without a target will be recorded as the end frame. There are three ways to record a behavior. ",
     "url": "/labeling_interactions/label_with_hotkeys.html",
     
     "relUrl": "/labeling_interactions/label_with_hotkeys.html"
-  },"19": {
+  },"23": {
     "doc": "Labeling with Keyboard Shortcuts",
     "title": "1. Behaviors with a target",
     "content": ". | Go to the start frame of the behavior | Press the shortcut assigned to the subject of the behavior | Press the shortcut assigned to the action of the behavior | Go to the end frame of the behavior | Press the shortcut assigned to the target of the behavior (either a box or one of the individuals) | . ",
     "url": "/labeling_interactions/label_with_hotkeys.html#1-behaviors-with-a-target",
     
     "relUrl": "/labeling_interactions/label_with_hotkeys.html#1-behaviors-with-a-target"
-  },"20": {
+  },"24": {
     "doc": "Labeling with Keyboard Shortcuts",
     "title": "2. Behaviors without a target",
     "content": "There are two ways to record a behavior without a target. 2.1. Single behavior without a target . | Go to the start frame of the behavior | Press the shortcut assigned to the subject of the behavior | Press the shortcut assigned to the action of the behavior | Go to the end frame of the behavior | Press the shortcut assigned to ending the current observation | . 2.2. Consecutive behaviors with the same subject . | Go to the start frame of the first behavior | Press the shortcut assigned to the subject of the first behavior | Press the shortcut assigned to the action of the first behavior | Go to the end frame of the first behavior (this will also be the start frame of the second behavior) | Press the shortcut assigned to the action of the next behavior | . The first behavior will be recorded without a target. The frame in which you pressed the shortcut for the second action will be recorded as the end frame of the first behavior. This frame will also be recorded as the start frame of the second behavior. Now, the app will wait for you to select a target for the second observation or ending the observation without a target. You should then go to the frame where the second behavior ends and press the shortcut assigned to your selection for the target. ",
     "url": "/labeling_interactions/label_with_hotkeys.html#2-behaviors-without-a-target",
     
     "relUrl": "/labeling_interactions/label_with_hotkeys.html#2-behaviors-without-a-target"
-  },"21": {
+  },"25": {
     "doc": "Linux",
     "title": "Linux",
     "content": "Linux installers are available for Debian- and RPM-based distributions on both x64 and ARM architectures. Run arch or uname -m to confirm your architecture. For example, if the output is x86_64, it means you have a 64-bit Intel/AMD-based system. Similarly, if the output is aarch64, you have a 64-bit ARM-based system. ",
     "url": "/installation/linux.html",
     
     "relUrl": "/installation/linux.html"
-  },"22": {
+  },"26": {
     "doc": "Linux",
     "title": "Debian-Based Distributions",
     "content": "For Ubuntu and other Debian-based Linux distributions, download the deb file compatible with your computer architecture. Download for Debian/Ubuntu x64 Download for Debian/Ubuntu ARM64 On Ubuntu, if GNOME Software has already been installed, you can simply double click on the file to install it. Alternatively, you can execute the following command: . sudo apt install $PATH_TO_DEB_FILE . ",
     "url": "/installation/linux.html#debian-based-distributions",
     
     "relUrl": "/installation/linux.html#debian-based-distributions"
-  },"23": {
+  },"27": {
     "doc": "Linux",
     "title": "RPM-Based Distributions",
     "content": "For Fedora, RHEL, CentOS, SUSE and other RPM-based Linux distributions, download the RPM file compatible with your computer architecture. Download for RPM ARM64 Download for RPM x64 On RPM-based systems, you can install SiLVi with your package manager. For example with dnf, install it with: . sudo dnf install $PATH_TO_RPM_FILE . The Linux version has been briefly tested only on Ubuntu 24.04 LTS so far. ",
     "url": "/installation/linux.html#rpm-based-distributions",
     
     "relUrl": "/installation/linux.html#rpm-based-distributions"
-  },"24": {
+  },"28": {
     "doc": "macOS",
     "title": "macOS",
     "content": "MacOS are code signed. The installation and automatic updates should work without an issue. Download for macOS ARM64 Download for macOS x64 If you own a Mac based on ARM architecture (M1 or later), download the installer with ARM64 in its name. For older Macs with an Intel processor, choose the installer with x64 in its name. ",
     "url": "/installation/macos.html",
     
     "relUrl": "/installation/macos.html"
-  },"25": {
+  },"29": {
     "doc": "Misclassification",
     "title": "Fixing Misclassification",
     "content": "If a subject is misclassified by the tracking model, you can correct it by changing the class IDs of the bounding boxes belonging to the subject of interest. | Click on the bounding box. | Go to the tracking panel. | Select the Change class option. | Select the correct class ID/name from the drop-down menu. | Click Save to confirm. | . ",
     "url": "/fix_tracking_errors/misclassification.html#fixing-misclassification",
     
     "relUrl": "/fix_tracking_errors/misclassification.html#fixing-misclassification"
-  },"26": {
+  },"30": {
     "doc": "Misclassification",
     "title": "Misclassification",
     "content": " ",
     "url": "/fix_tracking_errors/misclassification.html",
     
     "relUrl": "/fix_tracking_errors/misclassification.html"
-  },"27": {
+  },"31": {
     "doc": "Misidentification",
     "title": "Fixing Misidentification",
     "content": "To quickly correct the name of an individual who was assigned a wrong name by the model, right-click on a bounding box and select the correct name from the drop-down menu. Alternatively, you can click on a bounding box. A menu with the options for changing the track properties will open. Then, make sure Change name option is chosen, select the correct name from the drop-down menu, and click Save. ",
     "url": "/fix_tracking_errors/misidentification.html#fixing-misidentification",
     
     "relUrl": "/fix_tracking_errors/misidentification.html#fixing-misidentification"
-  },"28": {
+  },"32": {
     "doc": "Misidentification",
     "title": "Misidentification",
     "content": " ",
     "url": "/fix_tracking_errors/misidentification.html",
     
     "relUrl": "/fix_tracking_errors/misidentification.html"
-  },"29": {
+  },"33": {
     "doc": "Partial Detection",
     "title": "Fixing Partial Detection",
     "content": " ",
     "url": "/fix_tracking_errors/partial_detection.html#fixing-partial-detection",
     
     "relUrl": "/fix_tracking_errors/partial_detection.html#fixing-partial-detection"
-  },"30": {
+  },"34": {
     "doc": "Partial Detection",
     "title": "Table of Contents",
     "content": ". | Resizing an Existing Track . | Correcting a Single Bounding Box | Correcting Multiple Bounding Boxes with Interpolation | . | . If a subject is detected by tracking but the the detection is not precise, you can fix it by resizing the bounding box around the subject. ",
     "url": "/fix_tracking_errors/partial_detection.html#table-of-contents",
     
     "relUrl": "/fix_tracking_errors/partial_detection.html#table-of-contents"
-  },"31": {
+  },"35": {
     "doc": "Partial Detection",
     "title": "Resizing an Existing Track",
     "content": ". | Enable the drawing mode. | Resize the bounding box of the subject of interest by dragging the handles on its corners. | You can either apply dimension adjustments to a single bounding box on the current video frame or interpolate dimensions of multiple boxes between two video frames. | . Correcting a Single Bounding Box . | To apply changes only to the bounding box of interest in current video frame, ensure the Interpolate option is deselected. | Then, Click Save to confirm your choice. | . Correcting Multiple Bounding Boxes with Interpolation . | To apply changes to multiple instances of the track of interest, select Interpolate. | Skip backward or forward to the frame where you wish the interpolation to continue. | Resize the bounding box belonging to the same subject in the current frame. | To end the interpolation here, click End. | To continue the interpolation further in other frames with the same class and track ID, click Continue. | Repeat the previous step until you reach to the frame where the interpolation should end. | Click End to complete the interpolation. | . You can review the interpolated bounding boxes and correct any of them later by resizing if necessary. ",
     "url": "/fix_tracking_errors/partial_detection.html#resizing-an-existing-track",
     
     "relUrl": "/fix_tracking_errors/partial_detection.html#resizing-an-existing-track"
-  },"32": {
+  },"36": {
     "doc": "Partial Detection",
     "title": "Partial Detection",
     "content": " ",
     "url": "/fix_tracking_errors/partial_detection.html",
     
     "relUrl": "/fix_tracking_errors/partial_detection.html"
-  },"33": {
+  },"37": {
     "doc": "Saving Your Work",
     "title": "Saving Your Work",
     "content": "Your observations, tracking edits and notes linked to the main view are always saved automatically. When you open a new video as the main view with any previous work linked to it, the app will import them. For example, you were working on Video A, then opened Video B before completing your work on the Video A. You worked a bit on Video B, then resumed your work on Video A. All your work linked to Video A (behaviors, tracking edits, notes, etc.) will be automatically reimported. This is also true when you reopen the Video B. You can export all files linked to the main view whenever you prefer. The files will be exported into a folder named after the main view. The app will keep your work even after you export these files. ",
     "url": "/save_your_work.html",
     
     "relUrl": "/save_your_work.html"
-  },"34": {
+  },"38": {
     "doc": "Troubleshooting",
     "title": "Troubleshooting",
     "content": " ",
     "url": "/troubleshooting.html",
     
     "relUrl": "/troubleshooting.html"
-  },"35": {
+  },"39": {
     "doc": "Troubleshooting",
     "title": "Clearing App Data",
     "content": "If necessary, you can clear the app data via the Settings menu. This can be useful as a last resort solution if you encounter any issues that cannot be resolved by any other way. However, clearing the app data will result in losing all unexported work. Please export your work before using this option. ",
     "url": "/troubleshooting.html#clearing-app-data",
     
     "relUrl": "/troubleshooting.html#clearing-app-data"
-  },"36": {
+  },"40": {
     "doc": "Updates",
     "title": "Installing Updates",
     "content": "Whenever a new version of the app is released, updates will be automatically downloaded and installed on macOS and Windows. On Linux, automatic update functionality has not been implemented yet. At the moment, each new version of the app needs to be manually downloaded and installed. ",
     "url": "/installation/updates.html#installing-updates",
     
     "relUrl": "/installation/updates.html#installing-updates"
-  },"37": {
+  },"41": {
     "doc": "Updates",
     "title": "Updates",
     "content": " ",
     "url": "/installation/updates.html",
     
     "relUrl": "/installation/updates.html"
-  },"38": {
+  },"42": {
     "doc": "Windows",
     "title": "Windows",
     "content": "There are two ways to use the app on Windows, either via the Microsoft Store or by downloading the executable directly. Both versions are functionally identical. However, they differ in how they are installed and receive automatic updates. It might take up to a few days to get the updates on the Microsoft Store because of the additional verification process done by Microsoft. The EXE version gets the updates within minutes. ",
     "url": "/installation/windows.html",
     
     "relUrl": "/installation/windows.html"
-  },"39": {
+  },"43": {
     "doc": "Windows",
     "title": "Microsoft Store Version",
     "content": "Microsoft Store version of SiLVi is currently under preparation. ",
     "url": "/installation/windows.html#microsoft-store-version",
     
     "relUrl": "/installation/windows.html#microsoft-store-version"
-  },"40": {
+  },"44": {
     "doc": "Windows",
     "title": "EXE Version",
     "content": "On Windows, any app outside the Microsoft Store needs to be code-signed to be marked safe by the operating system. Unfortunately, certificate authorities only issue these code-signing certificates to registered companies. Therefore, for the first installation, permission to run the app must be granted by the user. Download for Windows Please follow the instructions below for the installation of the app on Windows. These steps need to be done only once. Each subsequent update will be downloaded and installed by the app automatically. On your browser, click the three dots next to the downloaded file and select *Keep*. Click Show more. Select Keep anyway. Click More info on the Microsoft Defender SmartScreen prompt. Finally select Run anyway. ",
     "url": "/installation/windows.html#exe-version",
     
     "relUrl": "/installation/windows.html#exe-version"
-  },"41": {
+  },"45": {
     "doc": "Zooming",
     "title": "Zooming",
     "content": "You can zoom into a specific region of the main view. First, enable the zoom mode. Then, hold down your mouse over the main view and draw a rectangle to zoom in on a specific area. Release the mouse to view the zoomed area in a new window. Adjust the zoom scale on this window or use the settings menu. The window for zoomed area can be moved and hidden freely. ",
