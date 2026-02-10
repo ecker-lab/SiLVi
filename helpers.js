@@ -757,17 +757,23 @@ function produceLabelText(bBox) {
     if (typeof idStr === 'undefined' || idStr === null) return;
   }
 
-  // Get the name order
-  const nameOrder = bBox['nameOrder'] ? parseInt(bBox['nameOrder']) : undefined;
-  
   // Start constructing label with class and track IDs
   let labelText = classId + '–' + trackId;
-  
-  // Add individual name if it exists
+
+  // If there are individual names
   const individualNames = Player.getIndividualNames();
-  if (Array.isArray(individualNames) && Number.isSafeInteger(nameOrder)) {
+  if (Array.isArray(individualNames) && individualNames.length > 0) {
+    
+    // Get the name order from the bounding box and check its validity
+    const nameOrder = bBox.getNameOrder();
+    
+    // Add the name to the label if the name order is valid and the name exists in the individual names list
+    const validNameOrder = typeof nameOrder !== 'undefined' && nameOrder !== null && nameOrder >= 0 && nameOrder < individualNames.length;
     const subjectName = individualNames[nameOrder];
-    if (subjectName) labelText += '–' + subjectName;
+    if (subjectName) {
+      labelText += '–' + subjectName;
+    }
+
   }
   
   // Add class name if it exists
@@ -777,7 +783,6 @@ function produceLabelText(bBox) {
   }
 
   return labelText;
-
 
 }
 
@@ -900,17 +905,11 @@ function showToastForBehaviorRecording (options) {
 
   // Change the title for name edit div depending on existence of a name for the clicked individual
   // Check if clicked rectangle includes an individual name 
-  if (Number.isSafeInteger(clickedBBox.getNameOrder())) {
-
-    // Change the title 
-    nameEditDiv.querySelector('.description').textContent = 'Change name';
+  const clickedNameOrder = clickedBBox.getNameOrder?.();
+  const validClickedNameOrder = typeof clickedNameOrder !== 'undefined' && clickedNameOrder !== null;
     
   // If clicked rectangle has no individual name assigned by the model, show an option to add it
-  } else {
-
-    // Change the title 
-    nameEditDiv.querySelector('.description').textContent = 'Add name';
-  }
+  nameEditDiv.querySelector('.description').textContent = validClickedNameOrder ? 'Change name' : 'Add name';
 
   // Check if main player is initialized
   const mainPlayer = Player.getMainPlayer();
@@ -919,7 +918,7 @@ function showToastForBehaviorRecording (options) {
   // Assign the value for the first available track ID input element
   if (firstAvailTrackIdInputEl) {
     // const firstAvailTrackId = mainPlayer.getFirstAvailTrackIds().get(clickedBBox.classId);
-    const firstAvailTrackId = Player.getFirstAvailTrackId(clickedBBox.classId);
+    const firstAvailTrackId = Player.getFirstAvailTrackId(clickedBBox.getClassId?.());
     if (typeof firstAvailTrackId !== 'undefined') {
       firstAvailTrackIdInputEl.value = firstAvailTrackId;
     }
@@ -937,14 +936,14 @@ function showToastForBehaviorRecording (options) {
   }
 
   // Save information about clicked rectangle
-  toastEl.dataset.clickedTrackId = clickedBBox.trackId;
-  toastEl.dataset.clickedClassId = clickedBBox.classId;
+  toastEl.dataset.clickedTrackId = clickedBBox.getTrackId?.();
+  toastEl.dataset.clickedClassId = clickedBBox.getClassId?.();
   toastEl.dataset.timestamp = timestamp;
   toastEl.dataset.frameNumber = frameNumber;
   toastEl.dataset.clickedNameOrder  = 'none'; // Assign none to clickedNameOrder by default
 
-  if (clickedBBox.hasOwnProperty('nameOrder')) {
-    toastEl.dataset.clickedNameOrder = clickedBBox.nameOrder; // If clicked rectangle has a name assigned to the model or user before, use it
+  if (validClickedNameOrder) {
+    toastEl.dataset.clickedNameOrder = clickedNameOrder; // If clicked rectangle has a name assigned to the model or user before, use it
   }
 
   // Get the undo Hotkey
@@ -958,7 +957,7 @@ function showToastForBehaviorRecording (options) {
   function showPopoverForUnnamedTrack(trackSpecies) {
 
     // Determine if the clicked track is identified as a box
-    const isBoxClicked = Player.getClassName(clickedBBox.classId) === 'box';
+    const isBoxClicked = Player.getClassName(clickedBBox.getClassId?.()) === 'box';
 
     // Return if the input class and clicked class do not match - i.e. do not show a popover
     if (trackSpecies) {
@@ -1031,7 +1030,7 @@ function showToastForBehaviorRecording (options) {
     toastAlert.classList.add('d-none'); 
 
     // Warn users if they choose a box as the subject
-    const className = Player.getClassName(clickedBBox.classId);
+    const className = Player.getClassName(clickedBBox.getClassId?.());
     // const isBoxClicked = speciesName ? speciesName === 'box' : false;
     // if (isBoxClicked) {
     //   toastAlert.textContent = "Selected subject is identified as a box!";

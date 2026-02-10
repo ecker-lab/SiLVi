@@ -449,8 +449,8 @@ class Player {
    * Gets the bounding boxes under the mouse
    * @param {Number} mouseX 
    * @param {Number} mouseY 
-   * @param {Object[] | undefined} boxArr Array of boxes to search for. If undefined, bounding boxes in the current frame of the main player will be used.
-   * @returns {Object[] | undefined} 
+   * @param {BoundingBox[] | undefined} boxArr Array of boxes to search for. If undefined, bounding boxes in the current frame of the main player will be used.
+   * @returns {BoundingBox[] | undefined} 
    */
   static getBoxesUnderMouse(mouseX, mouseY, boxArr) {
     if (typeof mouseX === 'undefined' || typeof mouseY === 'undefined') return;
@@ -5345,22 +5345,23 @@ class Player {
     const heightRatio =  canvas.height / canvas.clientHeight;
 
     const clickedRectangles = Player.getBoxesUnderMouse(mouseX * widthRatio, mouseY * heightRatio, boxesInFrame);
-    if (!clickedRectangles || clickedRectangles.length < 1) {
+    if (!Array.isArray(clickedRectangles) || clickedRectangles.length <= 0) {
       return;
     }
 
     const clickedRectangle = clickedRectangles[0];
+    const clickedNameOrder = clickedRectangle.getNameOrder?.();
     
     const rightClickDiv = document.getElementById('right-click-canvas-div');
     const nameEditSelect = rightClickDiv.querySelector('select');
     if (!rightClickDiv || !nameEditSelect) return;
         
     // Save rectangle info to right click div element
-    rightClickDiv.dataset.clickedClassId = clickedRectangle.classId;
-    rightClickDiv.dataset.clickedTrackId = clickedRectangle.trackId;
+    rightClickDiv.dataset.clickedClassId = clickedRectangle.getClassId?.();
+    rightClickDiv.dataset.clickedTrackId = clickedRectangle.getTrackId?.();
     rightClickDiv.dataset.frameNumber = mainPlayer.getCurrentFrame();
-    if (Number.isInteger(parseInt(clickedRectangle.nameOrder))) {
-      rightClickDiv.dataset.clickedNameOrder = clickedRectangle.nameOrder;
+    if (typeof clickedNameOrder !== 'undefined') {
+      rightClickDiv.dataset.clickedNameOrder = clickedNameOrder;
     }
 
     const clickedInfoDiv = rightClickDiv.querySelector('.info-text');
@@ -5371,17 +5372,14 @@ class Player {
     // Clear previous options
     nameEditSelect.options.length = 0;
 
-    // Add default option
+    // Create the default option
     const defaultOption = document.createElement('option');
-    defaultOption.text = 'Add name'
-
+    
     // Change the title for name edit div depending on existence of a name for the clicked individual
     // Check if clicked rectangle includes an individual name 
-    if (Number.isInteger(clickedRectangle.nameOrder)) {
-      // Change the title 
-      defaultOption.text = 'Change name';
-    }
+    defaultOption.text = clickedNameOrder ? 'Change name' : 'Add name';
 
+    // Add the default option
     nameEditSelect.add(defaultOption);
 
     // Add all individual names to the options for editting tracks
@@ -9859,12 +9857,15 @@ class BoundingBox {
 
   /**
    * Gets the index of the name assigned to a BoundingBox in the array for all names
-   * @returns {Number} Index of the name in the name array
+   * @returns {Number | undefined} Index of the name in the name array or undefined if the name order is invalid
    */
   getNameOrder() {
-    return this.nameOrder;
+    const nameOrder = this.nameOrder;
+    if (Number.isSafeInteger(nameOrder) && nameOrder >= 0) {
+      return nameOrder;
+    }
+    return;
   }
-
 
   /**
    * Gets the color of class for drawing its bounding box
@@ -10197,9 +10198,6 @@ class DrawnBoundingBox extends BoundingBox {
       const isDeleted = trackingMap.deleteByIndices(idxArr);
       if (!isDeleted) return;
 
-      // Update their dimensions
-      // this.interpolatedBBoxes.forEach(bBox => )
-
     }
 
     // Linear interpolation
@@ -10212,10 +10210,14 @@ class DrawnBoundingBox extends BoundingBox {
         width: earlierBBox.width + widthSpeed * t,  // Increment width
         height: earlierBBox.height + heightSpeed * t, // Increment height
       });
-
+      
       // Save the newly created BoundingBox
       this.addInterpolated(newBBox);
+    }
 
+    // Add the fist bounding box to tracking map only when resizing, because when drawing a new box, the firstBBox has already been added to the tracking map in the handleConfirmation function. 
+    if (BoundingBox.isResizing()) {
+      this.addInterpolated(firstBBox);
     }
 
     // Reset interpolation
@@ -11182,9 +11184,6 @@ class DrawnBoundingBox extends BoundingBox {
       showAlertToast('Frame count must be larger than 1!', 'warning', 'Failed to Interpolate');
       return;
     };
-
-     // Add the fist bounding box to tracking map
-    trackingMap.add(firstBBox);
 
     // Add the interpolated boxes in between
     trackingMap.add(interpolatedBBoxes);
