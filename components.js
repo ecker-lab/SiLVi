@@ -67,7 +67,6 @@ class Observation {
 
   }
 
-
   get(key) {
     return this.entries.get(key);
 
@@ -3427,203 +3426,181 @@ class Player {
     const handleName = response?.handleName;
     const handleClicked =  handleName &&  (clickedBBox instanceof BoundingBox);
     
-    // If one of the resize handles is clicked
-    if (handleClicked) {
+    const interpolating = DrawnBoundingBox.isInterpolating();
+    const resizing = BoundingBox.isResizing();
+    const resizingButNotInterpolating = resizing && !interpolating;
+    const resizingAndInterpolating = resizing && interpolating;
+    const notResizingButInterpolating = !resizing && interpolating;
+    const notResizingAndNotInterpolating = !resizing && !interpolating;
 
-      // If there is no previously resized bBox
-      if (!DrawnBoundingBox.isInterpolating() && !BoundingBox.isResizing()) {
-        
-        // Create a DrawnBBox instance for resized box and assign it to the BoundingBox class
-        const resizedBBox = BoundingBox.setResizedBBox();
-        if ( !(resizedBBox instanceof DrawnBoundingBox) ) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
-        // Create and save the first BBox on the frame temporarily
-        const firstResp = resizedBBox.addFirstBBox(clickedBBox);
-        if (!firstResp) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
+    // Stop here if interpolating of a newly drawn bounding box
+    if (notResizingButInterpolating) return;
+    
+    // Stop here if no resizing handle is clicked
+    if (!handleClicked) return;
+    
+    // If one of the resizing handles is clicked
+    // Check the validity of bBoxes in the frame
+    if (!Array.isArray(boxesInFrame) || boxesInFrame.length <= 0) {
+      showAlertToast('Operation failed! Please try again.', 'error');
+      return;
+    }
 
-        // Set the resizing dimensions and coordinates
-        const dimResp = BoundingBox.setResizeDims({
-          startX: clickedBBox.x,
-          startY: clickedBBox.y,
-          width: clickedBBox.width,
-          height: clickedBBox.height
-        });
-        if (!dimResp) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
+    // If there is no previously resized bBox
+    if (notResizingAndNotInterpolating) {
       
-        // Set the resize handle
-        const handleResp = BoundingBox.setResizeHandle(handleName);
-        if (!handleResp) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
-        // Flag the start of resizing
-        BoundingBox.enableResizing();
+      // Create a DrawnBBox instance for resized box and assign it to the BoundingBox class
+      const resizedBBox = BoundingBox.setResizedBBox();
+      if ( !(resizedBBox instanceof DrawnBoundingBox) ) {
+        showAlertToast('Resizing failed! Please try again.', 'error');
         return;
-  
       }
 
-      // If resizing of a BBox is not confirmed or canceled yet
-      if (!DrawnBoundingBox.isInterpolating() && BoundingBox.isResizing()) {
-          
-        // Get the previously resized instance
-        const resizedBBox = BoundingBox.getResizedBBox();
-        if ( !(resizedBBox instanceof DrawnBoundingBox) ) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-
-        // Get the first resized bBox
-        const firstBBox = resizedBBox.getFirstBBox();
-        if ( !(firstBBox instanceof BoundingBox) ) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
-        // Check if the clicked bBox matches to the previously resized bBox
-        const validTarget = (firstBBox.getClassId() === clickedBBox.getClassId()) && (firstBBox.getTrackId() === clickedBBox.getTrackId());
-        if (!validTarget) {
-          console.log('resizedBBox', firstBBox);
-          showPopover({
-            onCanvas: true,
-            x: firstBBox.getX(),
-            y: firstBBox.getY(),
-            title: 'Unfinished Resizing',
-            content: 'Before resizing another bounding box, first confirm or cancel resizing of this bounding box.',
-            placement: 'right',
-            type: 'warning'
-          });
-          BoundingBox.disableMousemove()
-          return;
-  
-        }
-
-        BoundingBox.enableMousemove();
-  
-        // Set the resizing dimensions and coordinates
-        const dimResp = BoundingBox.setResizeDims({
-          startX: clickedBBox.x,
-          startY: clickedBBox.y,
-          width: clickedBBox.width,
-          height: clickedBBox.height
-        });
-        if (!dimResp) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-      
-        // Set the resize handle
-        const handleResp = BoundingBox.setResizeHandle(handleName);
-        if (!handleResp) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
+      // Create and save the first BBox on the frame temporarily
+      const firstResp = resizedBBox.addFirstBBox(clickedBBox);
+      if (!firstResp) {
+        showAlertToast('Resizing failed! Please try again.', 'error');
         return;
-  
-  
       }
 
-      // If user enabled interpolation for a previously resized bounding box
-      if (DrawnBoundingBox.isInterpolating() && DrawnBoundingBox.isResizing()) {
-        // Prevent resizing with mousemove by default before searching for matching tracks
-        // BoundingBox.disableMousemove();
-        
-        // Get the previously resized bounding box
-        const resizedBBox = BoundingBox.getResizedBBox();
-        if ( !(resizedBBox instanceof DrawnBoundingBox) ) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
-        // Get the first resized bBox
-        const firstBBox = resizedBBox.getFirstBBox();
-        if ( !(firstBBox instanceof BoundingBox) ) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
-        // Get the selected bBox properties
-        const classId = firstBBox.getClassId();
-        const trackId = firstBBox.getTrackId();
-        const classText = Player.getClassName(classId) ?? `${classId}`;
-  
-        // Search for class and track IDs of the first resized BBox among the current frame tracks 
-        if (!Array.isArray(boxesInFrame) || boxesInFrame.length <= 0) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-        const isTargetInFrame = boxesInFrame.some(bBox => bBox?.classId === classId && bBox?.trackId === trackId);
-  
-        // If the target track is NOT in the frame, show a warning
-        if (!isTargetInFrame) {
-          console.log('target is not in frame');
-          showPopover({
-            domEl: document.getElementById(DrawnBoundingBox.interpolationElOnMainBarId),
-            title: 'No matching target',
-            content: `Go to another frame with track <span class="badge text-bg-dark">${classText}-${trackId}</span> to resize or cancel interpolation here.`,
-            placement: 'bottom',
-            type: 'info',
-            hideTimeout: 2000
-          });
-          return;
-            
-        }
+      // Flag the start of resizing
+      BoundingBox.enableResizing();
 
-        // Only allow resizing of a box with the same track ID
-        const isTargetClicked = clickedBBox?.getClassId?.() === classId && clickedBBox?.getTrackId?.() === trackId;
+      // If resizing started without interpolating, but not confirmed or canceled yet
+    } else if (resizingButNotInterpolating) {
+
+      // Get the previously resized instance
+      const resizedBBox = BoundingBox.getResizedBBox();
+      if ( !(resizedBBox instanceof DrawnBoundingBox) ) {
+        showAlertToast('Resizing failed! Please try again.', 'error');
+        return;
+      }
   
+      // Get the first resized bBox
+      const firstBBox = resizedBBox.getFirstBBox();
+      if ( !(firstBBox instanceof BoundingBox) ) {
+        showAlertToast('Resizing failed! Please try again.', 'error');
+        return;
+      }
+  
+      // Check if the clicked bBox matches to the previously resized bBox
+      const isTargetClicked = (firstBBox.getClassId() === clickedBBox.getClassId()) && (firstBBox.getTrackId() === clickedBBox.getTrackId());
+      if (!isTargetClicked) {
+        showPopover({
+          onCanvas: true,
+          x: firstBBox.getX(),
+          y: firstBBox.getY(),
+          title: 'Unfinished Resizing',
+          content: 'Before resizing another bounding box, first confirm or cancel resizing of this bounding box.',
+          placement: 'right',
+          type: 'warning'
+        });
+        BoundingBox.disableMousemove();
+        return;
+
+      }  
+
+      // If interpolation is enabled for a previously resized bounding box
+    } else if (resizingAndInterpolating) {      
+      
+      // Get the previously resized bounding box
+      const resizedBBox = BoundingBox.getResizedBBox();
+      if ( !(resizedBBox instanceof DrawnBoundingBox) ) {
+        showAlertToast('Resizing failed! Please try again.', 'error');
+        return;
+      }
+
+      // Get the first resized bBox
+      const firstBBox = resizedBBox.getFirstBBox();
+      if ( !(firstBBox instanceof BoundingBox) ) {
+        showAlertToast('Resizing failed! Please try again.', 'error');
+        return;
+      }
+
+      // Get the selected bBox properties
+      const classId = firstBBox.getClassId();
+      const trackId = firstBBox.getTrackId();
+      const trackNumber = firstBBox.getTrackNumber();
+      const classText = Player.getClassName(classId) ?? `${classId}`;
+
+
+      // If the target track is NOT in the frame, show a warning
+      const isTargetInFrame = boxesInFrame.some(bBox => bBox?.getClassId?.() === classId && bBox?.getTrackId?.() === trackId);      
+      if (!isTargetInFrame) {
+        showPopover({
+          domEl: document.getElementById(DrawnBoundingBox.interpolationElOnMainBarId),
+          title: 'No matching target',
+          content: `Go to another frame with track <span class="badge text-bg-dark">${classText}-${trackId}</span> to resize or cancel interpolation here.`,
+          placement: 'bottom',
+          type: 'info',
+          hideTimeout: 2000
+        });
+        return;
+      }
+
+      // Prevent resizing a bBox in the same frame when interpolating
+      if (trackNumber === mainPlayer.getCurrentFrame()) {
+        showPopover({
+          onCanvas: true,
+          x: firstBBox.getX() + firstBBox.getWidth() / 2,
+          y: firstBBox.getY(),
+          title: 'Invalid Frame for Interpolation',
+          content: `Cannot interpolate in this frame. Move to another frame to interpolate.`,
+          placement: 'top',
+          type: 'warning',
+          hideTimeout: 2000
+        });
+        return;
+      }
+  
+      // Only allow resizing of a box with the same class and track ID
+      const isTargetClicked = clickedBBox?.getClassId?.() === classId && clickedBBox?.getTrackId?.() === trackId;
+      if (!isTargetClicked) {
         // If clicked box is not the target box, show a warning
-        if (!isTargetClicked) {
-          // Show popover 
-          console.log('firstBBox', firstBBox)
-          showPopover({
-            onCanvas: true,
-            x: firstBBox.getX?.() + firstBBox.getWidth?.() / 2,
-            y: firstBBox.getY?.(),
-            title: 'Target Bounding Box',
-            content: `You can only resize this bounding box for interpolation.`,
-            placement: 'top',
-            type: 'info',
-            hideTimeout: 2000
-          });
-          return;
-  
-        }
-
-        // Re-enable resizing
-        BoundingBox.enableMousemove();
-  
-        // Create and save the first BBox on the frame temporarily
-        const firstResp = resizedBBox.addLastBBox(clickedBBox);
-        if (!firstResp) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
-        // Save the copy of the original BBox in case user decides to cancel resizing
-        const initResp = resizedBBox.addInitLastBBox(clickedBBox);
-        if (!initResp) {
-          showAlertToast('Resizing failed! Please try again.', 'error');
-          return;
-        }
-  
-  
+        showPopover({
+          onCanvas: true,
+          x: firstBBox.getX?.() + firstBBox.getWidth?.() / 2,
+          y: firstBBox.getY?.(),
+          title: 'Target Bounding Box',
+          content: `You can only resize this bounding box for interpolation.`,
+          placement: 'top',
+          type: 'info',
+          hideTimeout: 2000
+        });
+        BoundingBox.disableMousemove();
+        return;
       }
+  
+      // Create and save the first BBox on the frame temporarily
+      const firstResp = resizedBBox.addLastBBox(clickedBBox);
+      if (!firstResp) {
+        showAlertToast('Resizing failed! Please try again.', 'error');
+        return;
+      }
+        
 
+    }
       
+    // Set the resizing dimensions and coordinates
+    const dimResp = BoundingBox.setResizeDims({
+      startX: clickedBBox.x,
+      startY: clickedBBox.y,
+      width: clickedBBox.width,
+      height: clickedBBox.height
+    });
+    if (!dimResp) {
+      showAlertToast('Resizing failed! Please try again.', 'error');
+      return;
+    }
+  
+    // Set the resize handle
+    const handleResp = BoundingBox.setResizeHandle(handleName);
+    if (!handleResp) {
+      showAlertToast('Resizing failed! Please try again.', 'error');
+      return;
+    }
 
-    }    
-
+    BoundingBox.enableMousemove();
 
     
   }
@@ -3793,7 +3770,6 @@ class Player {
     if (!drawingCanvas) return;
 
     // Check if mouse is moving while mouse button is down
-    console.log('ismousedown', Player.isMouseDown())
     if (e.buttons !== 1 || !Player.isMouseDown()) return;
 
     // Calculate clicked position relative to canvas  
@@ -4086,8 +4062,15 @@ class Player {
 
       ctx.lineWidth = BoundingBox.getLineWidth();
 
+      const resizing = DrawnBoundingBox.isResizing();
+      const interpolating = DrawnBoundingBox.isInterpolating();
+      const resizingAndInterpolating = resizing && interpolating;
+      const resizingButNotInterpolating = resizing && !interpolating;
+      const notResizingAndNotInterpolating = !resizing && !interpolating;
+      const notResizingButInterpolating = !resizing && interpolating;
+
       // If user drawing a new bBox (i.e. not resizing) and did not enable interpolating 
-      if (!DrawnBoundingBox.isResizing() && !DrawnBoundingBox.isInterpolating()) {
+      if (notResizingAndNotInterpolating) {
        
         // Clear the canvas from previous drawings
         ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
@@ -4134,10 +4117,10 @@ class Player {
 
         confirmDiv.classList.remove('d-none');        
         
-      }
       
-      // If user is drawing a new box (i.e. not resizing) and enabled interpolating (i.e. first bounding box is already drawn and second one is expected)
-      else if (!DrawnBoundingBox.isResizing() && DrawnBoundingBox.isInterpolating()) {
+      
+        // If user is drawing a new box (i.e. not resizing) and enabled interpolating (i.e. first bounding box is already drawn and second one is expected)
+      } else if (notResizingButInterpolating) {
 
         // Clear the canvas from previous drawings
         ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
@@ -4197,7 +4180,7 @@ class Player {
         }
 
         drawnBBox.addLastBBox(lastBBox);
-        drawnBBox.addInitLastBBox(lastBBox);
+        // drawnBBox.addInitLastBBox(lastBBox);
 
         // Show the buttons relevant to interpolation, hide other elements
         showInterpolationEls();
@@ -4205,10 +4188,10 @@ class Player {
         // Make the confirmation element visible
         confirmDiv.classList.remove('d-none');
         
-      }
 
-      // If user is resizing an existing bounding box and is NOT interpolating of a previously resized bounding box
-      else if (DrawnBoundingBox.isResizing() && !DrawnBoundingBox.isInterpolating()) {
+
+        // If user is resizing an existing bounding box and is NOT interpolating of a previously resized bounding box
+      } else if (resizingButNotInterpolating) {
   
         // Get the resized bBox instance
         const resizedBBox = BoundingBox.getResizedBBox();
@@ -4236,10 +4219,8 @@ class Player {
         // Make the confirmation element visible
         confirmDiv.classList.remove('d-none');
   
-      }
-  
-      // If user checked interpolation for a previously resized bounding box
-      else if (DrawnBoundingBox.isResizing() && DrawnBoundingBox.isInterpolating()) {
+        // If user checked interpolation for a previously resized bounding box
+      } else if (resizingAndInterpolating) {
   
         // Only allow resizing of a box with the same track ID
         // If there is no such a track in the current frame show a warning
@@ -9467,10 +9448,8 @@ class BoundingBox {
     if (!handle) return;
 
     const handleNames = BoundingBox.getResizeHandleNames();
-    if (!handleNames) return;
-
+    if (!Array.isArray(handleNames)) return;
     if (!handleNames.includes(handle)) return;
-
     if (!BoundingBox.hasOwnProperty('resizeHandle')) return;
 
     BoundingBox.resizeHandle = handle;
@@ -9507,6 +9486,22 @@ class BoundingBox {
     BoundingBox.resizeStartHeight = height;
 
     return true;
+  }
+
+  static getResizeStartX() {
+    return BoundingBox.resizeStartX;
+  }
+
+  static getResizeStartY() {
+    return BoundingBox.resizeStartY;
+  }
+
+  static getResizeStartWidth() {
+    return BoundingBox.resizeStartWidth;
+  }
+
+  static getResizeStartHeight() {
+    return BoundingBox.resizeStartHeight;
   }
 
   /**
@@ -10892,6 +10887,7 @@ class DrawnBoundingBox extends BoundingBox {
           confirmDiv.classList.add('d-none');
 
           DrawnBoundingBox.disableResizing();
+          DrawnBoundingBox.disableInterpolation();
           
           // Refresh the canvas
           Player.refreshMainCanvas();
@@ -11087,22 +11083,21 @@ class DrawnBoundingBox extends BoundingBox {
       }
       masterArr[firstIdx] = firstInitBBox.clone();
      
-      // Get the clone of the initial bBox (it may not exists if not interpolation) to revert user edits
-      const lastInitBBox = drawnBBox.getLastBBox();
-      if ( (lastInitBBox instanceof BoundingBox) ) {
+      // Get the clone of the initial bBox (it may not exists if not interpolating) to revert user edits
+      const lastInitBBox = drawnBBox.getInitLastBBox();
+      if (lastInitBBox instanceof BoundingBox) {
+        
         // Get the lastBBox and its index in the master array to revert user edits
-        const lastBBox = drawnBBox.getLastBBox();
-        const lastIdx = lastBBox?.getIndex();
+        const lastIdx = lastInitBBox?.getIndex();
   
         // Attempt to place the initial bBox into the master array
-        if (!Number.isSafeInteger(firstIdx) || firstIdx < 0 || firstIdx >= masterArr.length) {
+        if (!Number.isSafeInteger(lastIdx) || lastIdx < 0 || lastIdx >= masterArr.length) {
           // Give error feedback
           showAlertToast('An error occurred! Please try again.', 'error', 'Cancellation Failed');
           return;
         }
-  
         masterArr[lastIdx] = lastInitBBox.clone();
-  
+
       }
 
       BoundingBox.setResizedBBox()
@@ -11126,81 +11121,8 @@ class DrawnBoundingBox extends BoundingBox {
     showAlertToast('Bounding box assignment canceled!', 'success');
 
     return;
-    
-    // If only a single bBox was resized
-    // if (!DrawnBoundingBox.isInterpolating() && DrawnBoundingBox.isResizing()) {
-    //   // Get the firstBBox and its index in the master array to revert user edits
-    //   const firstBBox = drawnBBox.getFirstBBox();
-    //   const idx = firstBBox?.getIndex();
 
-    //   // Attempt to place the initial bBox into the master array
-    //   if (!Number.isSafeInteger(idx) || idx < 0 || idx >= masterArr.length) {
-    //     // Give error feedback
-    //     showAlertToast('An error occurred! Please try again.', 'error', 'Cancellation Failed');
-    //     return;
-    //   }
-
-    //   // Get the clone of the initial bBox to revert user edits
-    //   const initFirstBBox = drawnBBox.getInitFirstBBox();
-    //   if ( !(initFirstBBox instanceof BoundingBox) ) {
-    //     // Give error feedback
-    //     showAlertToast('An error occurred. Please try again.', 'error', 'Cancellation Failed');
-    //     return;
-    //   }
-
-    //   masterArr[idx] = initFirstBBox.clone();
-
-     
-
-    // }
-
-    // // If a new bounding box is drawn in the first frame
-    // if (!DrawnBoundingBox.isInterpolating() && !DrawnBoundingBox.isResizing()) {
-
-    // }
-
-    // // If a bounding box in the last frame is resized for interpolation
-    // // Or if a new bounding box is drawn in the last frame for interpolation
-    // if ( (DrawnBoundingBox.isInterpolating() && DrawnBoundingBox.isResizing()) ||
-    //   (DrawnBoundingBox.isInterpolating() && !DrawnBoundingBox.isResizing()) 
-    // ) {
-      
-
-    //   }
-
-    //   // Reset the resized bBox
-    //   BoundingBox.setResizedBBox();
-
-    //   // Enable mousemove
-    //   BoundingBox.enableMousemove();
-
-    //   // Refresh the canvas
-    //   Player.refreshMainCanvas();
-
-    //   // Give user feedback
-    //   showAlertToast('Bounding box assignment canceled!', 'success');
-
-    //   return;
-
-
-    // } 
-
-
-    // // Reset the bounding box
-    // Player.setDrawnBBox();
-
-    // // Disable interpolating
-    // DrawnBoundingBox.disableInterpolation();
-
-    // // Enable mousemove
-    // BoundingBox.enableMousemove();
-
-    // // Refresh the canvas
-    // Player.refreshMainCanvas();
-
-    // // Give user feedback
-    // showAlertToast('Bounding box assignment canceled!', 'success');
-
+  
   }
 
   /**
@@ -11311,6 +11233,10 @@ class DrawnBoundingBox extends BoundingBox {
       popoverTitle = `Interpolation Continues for Track ${newFirstBBox.getClassId()}-${newFirstBBox.getTrackId()}`;
       popoverContent = 'Draw another box in another frame to continue interpolating. ' + popoverContent;
 
+      // If interpolation should end, disable interpolation and resizing
+    } else {
+      DrawnBoundingBox.disableInterpolation();
+      DrawnBoundingBox.disableResizing();
     }
 
     // Refresh the tracking canvas to show newly added BBox
