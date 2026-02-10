@@ -60,7 +60,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.5.0
         with:
-          overwrite_files: false
+          overwrite_files: true
           files: |
             dist/**/**
           draft: true
