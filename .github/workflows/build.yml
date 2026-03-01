@@ -9,7 +9,7 @@ jobs:
     name: Build for ${{ matrix.os }}
     strategy: 
       matrix: 
-        os: [ ubuntu-latest, windows-latest, ubuntu-24.04-arm, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel ]
     runs-on: ${{ matrix.os }}
     permissions:
       actions: write
@@ -43,7 +43,7 @@ jobs:
           #   org.freedesktop.Platform//25.08 \
           #   org.freedesktop.Sdk//25.08 \
           #   org.electronjs.Electron2.BaseApp//25.08
-      - name: Install dependencies
+      - name: Install node dependencies
         run: npm ci --save-dev
       - name: Make distributables
         run: npm run make --verbose
