@@ -9,7 +9,7 @@ jobs:
     name: Build for ${{ matrix.os }}
     strategy: 
       matrix: 
-        os: [ ubuntu-latest, windows-latest, ubuntu-24.04-arm ]
+        os: [ ubuntu-latest, windows-latest, ubuntu-24.04-arm, macos-latest ]
     runs-on: ${{ matrix.os }}
     permissions:
       actions: write
@@ -23,6 +23,12 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
+      - name: Setup macOS signing
+        if: ${{ startsWith(matrix.os, 'macos-') }}
+        uses: apple-actions/import-codesign-certs@v6
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_FILE_BASE64 }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
       - name: Install system dependencies
         if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         run: |
@@ -41,6 +47,10 @@ jobs:
         run: npm ci --save-dev
       - name: Make distributables
         run: npm run make --verbose
+        env:
+          APPLE_ID_EMAIL: ${{ secrets.APPLE_ID_EMAIL }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:

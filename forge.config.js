@@ -25,9 +25,13 @@ const commonLinuxConfig = {
       'docs',
       '.github'
     ],
-    osxSign: {},
+    osxSign: {
+      identity: 'Developer ID Application'
+    },
     osxNotarize: {
-      keychainProfile: 'notarization'
+      appleId: process.env.APPLE_ID_EMAIL,
+      appleIdPassword: process.env.APPLE_ID_PASSWORD,
+      teamId: process.env.APPLE_TEAM_ID
     }
   },
   rebuildConfig: {},

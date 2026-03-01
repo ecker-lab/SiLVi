@@ -25,8 +25,6 @@ For Ubuntu and other Debian-based Linux distributions, download the deb file com
   <a class="btn btn-primary" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/v0.5.1-alpha/silvi_0.5.1_arm64.deb" role="button"><i class="bi bi-ubuntu"></i> Download for Debian/Ubuntu ARM64</a>
 </div>
 
-
-
 On Ubuntu, if GNOME Software has already been installed, you can simply double click on the file to install it. Alternatively, you can execute the following command:
 
 ```sudo apt install $PATH_TO_DEB_FILE```
@@ -51,6 +49,3 @@ On RPM-based systems, you can install SiLVi with your package manager. For examp
 ```sudo dnf install $PATH_TO_RPM_FILE```
 
 <div class="alert alert-warning d-flex align-items-baseline" role="alert"><i class="bi bi-exclamation-circle-fill fs-5"></i><div class="ms-2 small"></div>The Linux version has been briefly tested only on Ubuntu 24.04 LTS so far.</div>
-
-
-
