@@ -1,6 +1,7 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, MenuItem, ipcMain, dialog } = require('electron');
 const { MediaInfo , mediaInfoFactory} = require('mediainfo.js');
+const gh = require('github-url-to-object');
 const { updateElectronApp } = require('update-electron-app');
 
 // Update the app automatically

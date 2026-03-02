@@ -28,6 +28,7 @@
     "@electron-forge/publisher-bitbucket": "^7.6.0",
     "@electron-forge/publisher-github": "^7.11.1",
     "@electron/fuses": "^1.8.0",
+    "@types/github-url-to-object": "^4.0.4",
     "electron": "^40.6.1",
     "http-server": "^14.1.1"
   },
