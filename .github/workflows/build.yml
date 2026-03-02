@@ -46,7 +46,7 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
       - name: Install node dependencies
-        run: export ELECTRON_MIRROR=https://cdn.npm.taobao.org/dist/electron/ && npm ci --verbose || npm ci --verbose || npm ci --verbose
+        run: npm ci --verbose || npm ci --verbose || npm ci --verbose
       - name: Make distributables
         run: npm run make --verbose
         env:
