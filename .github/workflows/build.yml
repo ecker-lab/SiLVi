@@ -46,7 +46,7 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
       - name: Install node dependencies
-        run: npm ci --verbose || npm ci --verbose || npm ci --verbose
+        run: npm i --verbose || npm i --verbose || npm i --verbose
       - name: Make distributables
         run: npm run make --verbose
         env:
