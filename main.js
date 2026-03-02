@@ -1,20 +1,20 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, MenuItem, ipcMain, dialog } = require('electron');
 const { MediaInfo , mediaInfoFactory} = require('mediainfo.js');
-const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
+const { updateElectronApp } = require('update-electron-app');
 
+// Update the app automatically
+updateElectronApp({
+  // updateSource: {
+    //   type: UpdateSourceType.ElectronPublicUpdateService,
+    //   repo: 'ozan-kanbertay/SiLVi'
+    // },
+    // updateInterval: '5 minutes',
+});
+  
 // run this as early in the main process as possible 
 // https://www.electronforge.io/config/makers/squirrel.windows
 if (require('electron-squirrel-startup')) app.quit();
-
-updateElectronApp({
-  updateSource: {
-    type: UpdateSourceType.ElectronPublicUpdateService,
-    repo: 'ozan-kanbertay/SiLVi'
-  },
-  updateInterval: '5 minutes',
-});
-
 
 const isMac = process.platform === 'darwin'
 
