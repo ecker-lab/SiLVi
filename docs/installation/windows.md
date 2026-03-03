@@ -19,7 +19,7 @@ Microsoft Store version of SiLVi is currently under preparation.
 On Windows, any app outside the Microsoft Store needs to be code-signed to be marked safe by the operating system. Unfortunately, certificate authorities only issue these code-signing certificates to registered companies. Therefore, for the first installation, permission to run the app must be granted by the user. 
 
 <div class="text-center mb-3">
-  <a class="btn btn-primary text-center" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/v0.5.1-alpha/SiLVi-0.5.1.Setup.exe" role="button"><i class="bi bi-windows"></i> Download for Windows</a>
+  <a class="btn btn-primary text-center" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/v0.5.2-alpha/SiLVi-0.5.2.Setup.exe" role="button"><i class="bi bi-windows"></i> Download for Windows</a>
 </div>
 
 Please follow the instructions below for the installation of the app on Windows. These steps need to be done only once. Each subsequent update will be downloaded and installed by the app automatically.
