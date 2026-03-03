@@ -8,7 +8,7 @@ const commonLinuxConfig = {
   title: 'SiLVi',
   description: 'Simple Interface for Labeling Video Interactions',
   productDescription: 'SiLVi enables researchers to annotate behaviors and interactions directly within video data, generating structured outputs suitable for training and validating computer vision models.',
-  homepage: 'https://ozan-kanbertay.github.io/SiLVi',
+  homepage: 'https://silvi.eckerlab.org',
   maintainer: 'Ozan Kanbertay',
   icon: 'icons/icon.png',
   categories: [ 'Science', 'Video' ],

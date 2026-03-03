@@ -18,11 +18,11 @@ Linux installers are available for Debian- and RPM-based distributions on both x
 For Ubuntu and other Debian-based Linux distributions, download the deb file compatible with your computer architecture. 
 
 <div class="text-center mb-3">
-  <a class="btn btn-primary" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/v0.5.2-alpha/silvi_0.5.2_amd64.deb" role="button"><i class="bi bi-ubuntu"></i> Download for Debian/Ubuntu x64</a>
+  <a class="btn btn-primary" href="https://github.com/ecker-lab/SiLVi/releases/download/v0.5.2-alpha/silvi_0.5.2_amd64.deb" role="button"><i class="bi bi-ubuntu"></i> Download for Debian/Ubuntu x64</a>
 </div>
 
 <div class="text-center mb-3">
-  <a class="btn btn-primary" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/v0.5.2-alpha/silvi_0.5.2_arm64.deb" role="button"><i class="bi bi-ubuntu"></i> Download for Debian/Ubuntu ARM64</a>
+  <a class="btn btn-primary" href="https://github.com/ecker-lab/SiLVi/releases/download/v0.5.2-alpha/silvi_0.5.2_arm64.deb" role="button"><i class="bi bi-ubuntu"></i> Download for Debian/Ubuntu ARM64</a>
 </div>
 
 On Ubuntu, if GNOME Software has already been installed, you can simply double click on the file to install it. Alternatively, you can execute the following command:
@@ -37,11 +37,11 @@ On Ubuntu, if GNOME Software has already been installed, you can simply double c
 For Fedora, RHEL, CentOS, SUSE and other RPM-based Linux distributions, download the RPM file compatible with your computer architecture. 
 
 <div class="text-center mb-3">
-  <a class="btn btn-primary" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/v0.5.2-alpha/silvi-0.5.2-1.arm64.rpm" role="button"><i class="bi bi-tux"></i> Download for RPM ARM64</a>
+  <a class="btn btn-primary" href="https://github.com/ecker-lab/SiLVi/releases/download/v0.5.2-alpha/silvi-0.5.2-1.arm64.rpm" role="button"><i class="bi bi-tux"></i> Download for RPM ARM64</a>
 </div>
 
 <div class="text-center mb-3">
-  <a class="btn btn-primary" href="https://github.com/ozan-kanbertay/SiLVi/releases/download/v0.5.2-alpha/silvi-0.5.2-1.x86_64.rpm" role="button"><i class="bi bi-tux"></i> Download for RPM x64</a>
+  <a class="btn btn-primary" href="https://github.com/ecker-lab/SiLVi/releases/download/v0.5.2-alpha/silvi-0.5.2-1.x86_64.rpm" role="button"><i class="bi bi-tux"></i> Download for RPM x64</a>
 </div>
 
 On RPM-based systems, you can install SiLVi with your package manager. For example with dnf, install it with:
