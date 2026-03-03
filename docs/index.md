@@ -11,7 +11,8 @@ SiLVi is a lightweight, open-source tool designed specifically to facilitate the
 
 By supporting precise annotations of both actions and interactions across individuals, SiLVi empowers researchers to move beyond individual-centric behavioral models toward richer representations of social behavior. Apart from this main contribution, SiLVi also allows for labeling individual IDs and annotating or correcting tracks.
 
-You can read our preprint [here](https://doi.org/10.48550/arXiv.2511.03819). If you use SiLVi in your research, please cite it. 
+<div class="alert alert-success d-flex align-items-baseline" role="alert"><i class="bi bi-info-circle-fill fs-5"></i><div class="ms-2 small">You can read our preprint <a href="(https://doi.org/10.48550/arXiv.2511.03819">here</a>. If you use SiLVi in your research, please cite it.</div></div>
+
 
 <img src="assets/screenshots/silvi_screenshot_change_name.jpg" class="app-screenshot">
 
