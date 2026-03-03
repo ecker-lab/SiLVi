@@ -1,17 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, MenuItem, ipcMain, dialog } = require('electron');
 const { MediaInfo , mediaInfoFactory} = require('mediainfo.js');
-// const gh = require('github-url-to-object');
-// const { updateElectronApp } = require('update-electron-app');
-
-// Update the app automatically
-// updateElectronApp({
-//   // updateSource: {
-//     //   type: UpdateSourceType.ElectronPublicUpdateService,
-//     //   repo: 'ozan-kanbertay/SiLVi'
-//     // },
-//     // updateInterval: '5 minutes',
-// });
   
 // run this as early in the main process as possible 
 // https://www.electronforge.io/config/makers/squirrel.windows
@@ -121,6 +110,17 @@ const menuTemplate = [
 const path = process.platform === 'win32' ? require('node:path/win32') : require('node:path/posix');
 const fs = require('node:fs')
 const readline = require('node:readline');
+
+// Update the app automatically
+// const gh = require('github-url-to-object');
+// const { updateElectronApp } = require('update-electron-app');
+// updateElectronApp({
+//   // updateSource: {
+//     //   type: UpdateSourceType.ElectronPublicUpdateService,
+//     //   repo: 'ozan-kanbertay/SiLVi'
+//     // },
+//     updateInterval: '9 minutes',
+// });
 
 const videoFormatNames = ['mkv', 'avi', 'mp4'];
 const videoExtensions = videoFormatNames.map(name => '.' + name)
