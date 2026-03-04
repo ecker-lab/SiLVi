@@ -10,7 +10,7 @@ This project was funded by the [Deutsche Forschungsgemeinschaft](https://www.dfg
 ## Development
 [Ozan Kanbertay](https://ozankanbertay.com) developed the software and wrote the documentation. 
 
-[Richard Vogg](https://eckerlab.org/people/) and [Alexander Ecker](https://eckerlab.org/people/) conceived the project and provided overall supervision. 
+[Richard Vogg](https://r-vogg-blog.netlify.app) and [Alexander Ecker](https://eckerlab.org/people/) conceived the project and provided overall supervision. 
 
 Richard Vogg designed the initial software prototype. 
 
