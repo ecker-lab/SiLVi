@@ -117,7 +117,7 @@ const readline = require('node:readline');
 // updateElectronApp({
 //   // updateSource: {
 //     //   type: UpdateSourceType.ElectronPublicUpdateService,
-//     //   repo: 'ozan-kanbertay/SiLVi'
+//     //   repo: '/SiLVi'
 //     // },
 //     updateInterval: '9 minutes',
 // });
@@ -2521,6 +2521,54 @@ function handleGetVersion() {
 }
 
 /**
+ * Analyzes the video file and tries to get the detailed information about the uploaded video, such as frame rate, codec, resolution, aspect ratio etc.
+ * @param {import('node:fs').PathLike} videoPath
+ * @returns {JSON} MediaInfo.js VideoTrack object containing the detailed information about the video file https://mediainfo.js.org/api/interface/VideoTrack/
+ */
+async function handleAnalyzeVideoFile(videoPath) {
+
+  // Remove leading "/" on Windows
+  const parsedPath = process.platform === 'win32' ? videoPath.replace(/^\//, '') : videoPath;
+
+  // Get the absolute path of the parsed path
+  const absPath = path.normalize(parsedPath);
+  
+  // Initialize mediaInfo object
+  const mediaInfo = await mediaInfoFactory({ format: 'JSON' });
+
+  // Get the file size
+  const stat = fs.statSync(absPath);
+  const getSize = () => stat?.size;
+
+  // Read the video file
+  const fd = fs.openSync(absPath, 'r');
+  
+  // Read the chunk of data
+  async function readChunk(chunkSize, offset) {
+    const buffer = Buffer.alloc(chunkSize);
+    const bytesRead = fs.readSync(fd, buffer, 0, chunkSize, offset);
+    return new Uint8Array(buffer.subarray(0, bytesRead));
+  }
+
+  // Analyze the video file
+  const result = await mediaInfo.analyzeData(getSize, readChunk);
+  
+  // Close the file stream
+  fs.closeSync(fd);
+
+  // Get the info in JSON
+  const info = typeof result === 'string' ? JSON.parse(result) : result;
+
+  // Find the video track
+  const videoTrack = (info.media.track || []).find(t => t['@type'] === 'Video' || t.type === 'Video');
+
+  // Return the video track containing the detailed information about the video file
+  return videoTrack;
+
+}
+
+
+/**
  * Calculates video frame rate (per second)
  * @param {import('node:fs').PathLike} videoPath
  * @returns {Number | undefined} Frames per second
@@ -2576,12 +2624,10 @@ async function handleCalcVideoFrameRate(videoPath) {
   if (!frameRate && videoTrack?.FrameRate_Num && videoTrack?.FrameRate_Den) {
     frameRate = parseFloat(videoTrack.FrameRate_Num) / parseFloat(videoTrack.FrameRate_Den);
   }
-
-  console.log('Video frame rate:', frameRate);
+  
   // Return the frame rate
   return parseFloat(frameRate);
 
-  
 }
 
 
@@ -2754,6 +2800,10 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('calcVideoFrameRate', (e, videoFilePath) => {
     const response = handleCalcVideoFrameRate(videoFilePath);
+    return response;
+  })
+  ipcMain.handle('analyzeVideoFile', async (e, videoFilePath) => {
+    const response = await handleAnalyzeVideoFile(videoFilePath);
     return response;
   })
   

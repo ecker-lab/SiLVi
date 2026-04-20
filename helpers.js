@@ -213,10 +213,10 @@ function showPopover(options) {
  * 
  * @param {String} title Title of the modal
  * @param {String[]} messages Alert message array
- * @param {Boolean} hideConfirmBtn True if confirmation button must be hidden
- * @param {String} confirmBtnText Text for the confirmation button
- * @param {Boolean} hideCancelBtn True if cancellation button must be hidden
- * @param {String} cancelBtnText Text for the cancellation button
+ * @param {Boolean | undefined} hideConfirmBtn True if confirmation button must be hidden
+ * @param {String | undefined} confirmBtnText Text for the confirmation button
+ * @param {Boolean | undefined} hideCancelBtn True if cancellation button must be hidden
+ * @param {String | undefined} cancelBtnText Text for the cancellation button
  * 
  */
 function showAlertModal(title, messages, hideConfirmBtn, confirmBtnText, hideCancelBtn, cancelBtnText) {

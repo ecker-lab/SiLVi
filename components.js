@@ -1244,13 +1244,17 @@ class Player {
         this.showSpinner();
 
         const mainPlayerSrc = this.getSource();
+
+        // Set the video properties based on the metadata using mediainfo.js
+        await this.setVideoProperties(mainPlayerSrc);
           
         // Set the frame rate
-        await this.setFrameRate();
+        // await this.setFrameRate();
+
 
         // TODO: Handle invalid frame rate here
 
-        // Reset the intevals IDs and DOM elements for last edit status
+        // Reset the intervals IDs and DOM elements for last edit status
         Player.resetEthogramInterval();
         Player.resetNotesInterval();
 
@@ -1497,9 +1501,11 @@ class Player {
 
       // Set frame rate and dismiss button
       this.on('loadeddata', async () => {
+
+        await this.setVideoProperties();
             
         // Set frame rate 
-        await this.setFrameRate();
+        // await this.setFrameRate();
 
         // TODO: Handle invalid frame rate here
 
@@ -4473,6 +4479,14 @@ class Player {
   }
 
   /**
+   * Gets the aspect ratio of the player instance.
+   * @returns {Number} Aspect ratio (width to height ratio)
+   */
+  getAspectRatio() {
+    return this.aspectRatio;
+  }
+
+  /**
    * Sets the frame rate (frames per second) of the player. 
    * It uses the input value if it is given. 
    * Otherwise, the video file is processed to calculate its frame rate.
@@ -4505,6 +4519,114 @@ class Player {
     Player.getMetadata?.().updateVideoFPS?.();
 
     return this.frameRate;
+
+  }
+
+  
+
+  /**
+   * Sets the aspect ratio (width to height ratio) of the player. 
+   * @param {Number | String | undefined} aspectRatio Optional aspect ratio
+   * @returns {Number | undefined} Updated aspect ratio or undefined if the operation is failed
+   */
+  setAspectRatio(aspectRatio) { 
+
+    const parsedAspectRatio = parseFloat(aspectRatio);
+    if (!Number.isFinite(parsedAspectRatio) || parsedAspectRatio <= 0) {
+      return;
+    }
+
+    this.aspectRatio = parsedAspectRatio;
+
+    // Update metadata
+    Player.getMetadata?.().updateVideoAspectRatio?.();
+
+    // Convert aspect ratio to percentage for CSS aspect-ratio property
+    const aspectRatioPercentage = (1 / parsedAspectRatio * 100).toFixed(2) + '%';
+
+    // Adjust DOM elements
+    const videoDiv = document.getElementById('main-video-div');
+    if (videoDiv) {
+      videoDiv.style.setProperty('--bs-aspect-ratio', aspectRatioPercentage);
+    }
+
+    const ratioDiv = document.getElementById('zoom-video-div').querySelector('.ratio');
+    if (ratioDiv) {
+      ratioDiv.style.setProperty('--bs-aspect-ratio', aspectRatioPercentage);
+    }
+
+    return this.aspectRatio
+
+  }
+
+
+  /**
+   * Sets the video properties such as frame rate by processing the video file if necessary
+   * @param {import('original-fs').PathLike} videoPath 
+   * @returns {Promise}
+   * @returns {JSON | undefined} JSON object containing the video track information or undefined if the operation is failed
+   */
+  async setVideoProperties(videoPath) {
+
+    const filePath = videoPath ?? this.getSource();
+    if (!filePath) return;
+
+    // Get the JSON object containing the video track information
+    const videoTrack = await this.analyzeVideoFile(filePath);
+    if (!videoTrack) return;
+
+    // Verify that the frame rate is constant
+    const isConstantFrameRate = videoTrack?.FrameRate_Mode === 'CFR' || videoTrack?.FrameRate_Mode_String === 'CFR';
+    if (!isConstantFrameRate) {
+      console.log('Only videos with constant frame rates are supported!');
+      showAlertModal(
+        'Unsupported Video Format', 
+        [
+          'Only videos with constant frame rates are supported!', 
+          'Please use a video with a constant frame rate or convert your video to have a constant frame rate using a video processing software such as ffmpeg.'
+        ], 
+        false, 
+        'Understood', 
+        true
+      );
+      return;
+    }
+
+    // Try to get the frame rate directly
+    let frameRate = parseFloat(videoTrack?.FrameRate || videoTrack?.FrameRateString);
+
+    // If no direct reading of frame rate is possible, try to calculate it from numerator and denominator properties
+    if (!frameRate && videoTrack?.FrameRate_Num && videoTrack?.FrameRate_Den) {
+      frameRate = parseFloat(videoTrack.FrameRate_Num) / parseFloat(videoTrack.FrameRate_Den);
+    }
+
+    // If frame rate is invalid, warn the user and return
+    if (!Number.isFinite(frameRate) || frameRate <= 0) {
+      showAlertToast(
+        'Failed to read the frame rate of the video file! Please make sure the selected file is a valid video file and try again.', 
+        'error', 
+        'Frame Rate Not Detected'
+      );
+      return;
+    }
+
+    await this.setFrameRate(frameRate);
+
+    let aspectRatio = parseFloat(videoTrack?.DisplayAspectRatio || videoTrack?.DisplayAspectRatio_Original);
+
+    // If no direct reading of aspect ratio is possible, try to calculate it from numerator and denominator properties
+    if (!aspectRatio) {
+      if (videoTrack?.Width_Original && videoTrack?.Height_Original) {
+        aspectRatio = parseFloat(videoTrack.Width_Original) / parseFloat(videoTrack.Height_Original);
+      } else if (videoTrack?.Width && videoTrack?.Height) {
+        aspectRatio = parseFloat(videoTrack.Width) / parseFloat(videoTrack.Height);
+      }
+
+    }
+
+    this.setAspectRatio(aspectRatio);
+
+    return videoTrack;
 
   }
   
@@ -4690,6 +4812,11 @@ class Player {
     const frameRate = await window.electronAPI.calcVideoFrameRate(this.getSource());
     return frameRate;
 
+  }
+
+  async analyzeVideoFile() {
+    const videoTrack = await window.electronAPI.analyzeVideoFile(this.getSource());
+    return videoTrack;
   }
 
   /**
@@ -9083,6 +9210,13 @@ class Metadata {
     const mainPlayer = Player.getMainPlayer();
     if (mainPlayer) {
       this.update('videoFPS', mainPlayer.getFrameRate());
+    }
+  }
+
+  updateVideoAspectRatio() {
+    const mainPlayer = Player.getMainPlayer();
+    if (mainPlayer) {
+      this.update('videoAspectRatio', mainPlayer.getAspectRatio());
     }
   }
 

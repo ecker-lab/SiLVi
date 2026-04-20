@@ -52,6 +52,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLastModifiedTime: (filePath) => ipcRenderer.invoke('getLastModifiedTime', filePath),
   exportAll: (dirPath) => ipcRenderer.invoke('dialog:exportAll', dirPath),
   calcVideoFrameRate: (videoFilePath) => ipcRenderer.invoke('calcVideoFrameRate', videoFilePath),
+  analyzeVideoFile: (videoFilePath) => ipcRenderer.invoke('analyzeVideoFile', videoFilePath),
   onAppQuit: (callback) => ipcRenderer.on('before-quit', (_event, value) => callback(value)),
   respondBeforeQuit: () => ipcRenderer.send('response-before-quit'),
   clearAppData: () => ipcRenderer.invoke('clear-app-data'),
