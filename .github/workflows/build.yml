@@ -70,7 +70,7 @@ jobs:
         with:
           path: dist
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.0
         with:
           overwrite_files: false
           files: |
