@@ -273,7 +273,7 @@
                   </div>
                 </div>
                 <!-- <div class="card-body p-0"> -->
-                <div id="main-video-div" class="position-relative ratio">
+                <div id="main-video-div" class="position-relative ratio ratio-16x9">
                   <div class="position-absolute spinner-parent-div"></div>
                     <video id="main-video">
                       Your browser does not support the video tag.
@@ -567,94 +567,6 @@
                     <datalist id="action-datalist"></datalist>
                   </table>
                 </div>
-                <!-- <ul class="nav nav-tabs" role="tablist">
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="behavior-table-tab" data-bs-toggle="tab" data-bs-target="#behavior-table-tab-pane" type="button" role="tab">Behavior</button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tracking-table-tab" data-bs-toggle="tab" data-bs-target="#tracking-table-tab-pane" type="button" role="tab">Tracking</button>
-                  </li>
-                </ul> -->
-                <!-- <div class="tab-content"> -->
-                  <!-- Behavior table tab -->
-                  <!-- <div class="tab-pane fade show active" id="behavior-table-tab-pane" role="tabpanel" aria-labelledby="behavior-table-tab" tabindex="0">
-                    <div class="d-flex justify-content-between mt-1">
-                      <div id="ethogram-save-status-div" class="d-flex align-items-start">
-                        <button type="button" class="btn btn-icon-small ms-2 text-success save-status-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Save status">
-                          <span class="material-symbols-rounded">published_with_changes</span>
-                        </button>
-                        <span class="fw-lighter last-edit-time" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Last edit"></span>
-                      </div>
-                      <div>
-                        <button id="import-ethogram-btn" type="button" class="btn btn-icon-small ms-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Import behaviors">
-                          <span class="material-symbols-rounded">upload</span>
-                        </button>
-                        <button id="export-ethogram-btn" type="button" class="btn btn-icon-small ms-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Export behaviors">
-                          <span class="material-symbols-rounded">download</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="table-responsive table-scrollable">
-                      <table id="behavior-table" class="table table-sm table-striped table-hover small">
-                        <thead>
-                          <tr class="text-start">
-                            <th id="subject" scope="col">Subject</th>
-                            <th id="action" scope="col">Action</th>
-                            <th id="target" scope="col">Target</th>
-                            <th id="start" scope="col">Start</th>
-                            <th id="end" scope="col">End</th>
-                            <th></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr class="empty-table-info">
-                            <td colspan="6">Records of behaviors will appear here</td>
-                          </tr>
-                        </tbody>
-                        <datalist id="subject-datalist"></datalist>
-                        <datalist id="target-datalist"></datalist>
-                        <datalist id="action-datalist"></datalist>
-                      </table>
-                    </div>
-                  </div>  -->
-                  <!-- Tracking table tab -->
-                  <!-- <div class="tab-pane fade show" id="tracking-table-tab-pane" role="tabpanel" aria-labelledby="tracking-table-tab" tabindex="0">
-                    <div class="d-flex justify-content-between mt-1">
-                      <div>
-                        <button id="tracking-save-status-btn" type="button" class="btn btn-icon-small ms-2 d-none" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Status">
-                          <span class="material-symbols-rounded">check_circle</span>
-                        </button>
-                      </div>
-                      <div>
-                        <button id="undo-tracking-change-btn" type="button" class="btn btn-icon-small ms-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Undo">
-                          <span class="material-symbols-rounded">undo</span>
-                        </button>
-                        <button type="button" class="btn btn-icon-small ms-2 time-format-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Show seconds" data-time-format="frames">
-                          <span class="material-symbols-rounded">timer</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="table-responsive table-scrollable">
-                      <table id="tracking-table" class="table table-sm table-striped table-hover small">
-                        <thead>
-                          <tr>
-                            <th scope="col">Edit Type</th>
-                            <th scope="col">Old ID</th>
-                            <th scope="col">New ID</th>
-                            <th scope="col">Start</th>
-                            <th scope="col">End</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr class="empty-table-info">
-                            <td colspan="5">Modified tracking labels will appear here</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div> -->
-                                 
-                <!-- </div> -->
               </div>
             </div>
           </div>
@@ -856,12 +768,13 @@
           </div>
           <div class="modal-body">
             <div class="col-9 mx-auto text-center">
-              <div class="fw-bold text-center mb-1">New Features</div>
-                <div class="text-center">
-                  Create new bounding boxes and edit existing ones directly on the video.
-                </div>
-                <video src="./videos/drawing_single_box.mp4" class="border rounded shadow mb-3" muted loop autoplay></video>
-              </ul> 
+              <div class="fw-bold text-center mb-1">
+                New Features
+              </div>
+              <div class="text-center">
+                Create new bounding boxes and edit existing ones directly on the video.
+              </div>
+              <video src="./videos/drawing_single_box.mp4" class="border rounded shadow mb-3" muted loop autoplay></video>
             </div>
           </div>
         </div>
@@ -1389,28 +1302,12 @@
           <button type="button" class="btn btn-icon-small btn-dismiss" tabindex="-1"><span class="material-symbols-rounded">close</span></button>
         </div>
       </div>
-      <div class="position-relative ratio">
-        <!-- <div class="d-flex align-items-center"> -->
+      <div class="position-relative ratio ratio-16x9"> 
+        <!-- 16:9 aspect ratio is the default value when no main video is opened yet. It will be removed and replaced with the actual aspect ratio when a video is loaded. -->
         <canvas id="zoom-video-canvas" class="position-absolute"></canvas>
   
-        <!-- </div> -->
-        <!-- <button id="zoom-panel-collapse-btn" class="btn btn-sm btn-icon-small panel-collapse-btn" tabindex="-1" data-bs-target="#zoom-panel-collapse" data-bs-toggle="collapse"><span class="material-symbols-rounded">visibility</span></button> -->
-        <!-- <canvas id="zoom-tracking-canvas" class="position-absolute"></canvas> -->
-
       </div>
     </div>
-
-    <!-- Element for interpolating bounding boxes -->
-    <!-- <div id="interpolation-confirm-div" class="card position-absolute d-none vw-25">
-      <div class="card-body">
-        <h5 class="card-title">Interpolate bounding boxes for other frames?</h5>
-        <p class="card-text">
-          Go to another frame and draw a bounding box around the same subject.<br> The bounding boxes for the frames in between will be interpolated.
-        </p>
-        <button type="button" class="btn btn-sm btn-secondary cancel-btn">No, do not interpolate</button>
-        <button type="button" class="btn btn-sm btn-primary confirm-btn">Yes, let me draw another box</button>
-      </div>
-    </div> -->
 
     
     <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

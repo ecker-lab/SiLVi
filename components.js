@@ -4546,16 +4546,16 @@ class Player {
 
     // Adjust DOM elements
     const videoDiv = document.getElementById('main-video-div');
-    if (videoDiv) {
-      videoDiv.style.setProperty('--bs-aspect-ratio', aspectRatioPercentage);
-    }
-
     const ratioDiv = document.getElementById('zoom-video-div').querySelector('.ratio');
-    if (ratioDiv) {
-      ratioDiv.style.setProperty('--bs-aspect-ratio', aspectRatioPercentage);
-    }
+    [videoDiv, ratioDiv].forEach(el => {
+      // Remove the default 16:9 aspect ratio class if it exists
+      el.classList.remove('ratio-16x9');
 
-    return this.aspectRatio
+      // Adjust the aspect ratio using the BootstrapCSS variable
+      el.style.setProperty('--bs-aspect-ratio', aspectRatioPercentage);
+    });
+
+    return this.aspectRatio;
 
   }
 
