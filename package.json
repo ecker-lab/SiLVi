@@ -2,7 +2,7 @@
   "name": "SiLVi",
   "version": "0.5.3",
   "description": "Simple Interface for Labeling Video Interactions",
-  "repository": "github:ozan-kanbertay/SiLVi",
+  "repository": "github:ecker-lab/SiLVi",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",

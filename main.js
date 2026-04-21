@@ -1,5 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, MenuItem, ipcMain, dialog } = require('electron');
+const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
 const { MediaInfo , mediaInfoFactory} = require('mediainfo.js');
   
 // run this as early in the main process as possible 
@@ -103,7 +104,6 @@ const menuTemplate = [
   // }
 ]
 
-
 // Use win32 property for consistency across Windows and MacOS
 // https://nodejs.org/api/path.html#windows-vs-posix
 
@@ -112,15 +112,13 @@ const fs = require('node:fs')
 const readline = require('node:readline');
 
 // Update the app automatically
-// const gh = require('github-url-to-object');
-// const { updateElectronApp } = require('update-electron-app');
-// updateElectronApp({
-//   // updateSource: {
-//     //   type: UpdateSourceType.ElectronPublicUpdateService,
-//     //   repo: '/SiLVi'
-//     // },
-//     updateInterval: '9 minutes',
-// });
+updateElectronApp({
+  updateSource: {
+    type: UpdateSourceType.ElectronPublicUpdateService,
+    repo: 'ecker-lab/SiLVi'  
+  },
+  updateInterval: '5 minutes'
+});
 
 const videoFormatNames = ['mkv', 'avi', 'mp4'];
 const videoExtensions = videoFormatNames.map(name => '.' + name)
