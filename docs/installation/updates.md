@@ -9,4 +9,4 @@ Whenever a new version of the app is released, updates will be automatically dow
 
 On Linux, automatic update functionality has not been implemented yet. At the moment, each new version of the app needs to be manually downloaded and installed. 
 
-<div class="alert alert-warning d-flex align-items-baseline" role="alert"><i class="bi bi-exclamation-circle-fill fs-5"></i><div class="ms-2 small">Automatic update functionality is temporarily disabled. This page will be updated when the issue is resolved.</div></div>
+<div class="alert alert-info d-flex align-items-baseline" role="alert"><i class="bi bi-info-circle-fill fs-5"></i><div class="ms-2 small">The issue with the automatic updates has been resolved for macOS and Windows. If you installed the SiLVi on your computer before the version 0.5.3, please download the latest installer for your operating system. </div></div>

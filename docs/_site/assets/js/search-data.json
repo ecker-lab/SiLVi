@@ -281,7 +281,7 @@
   },"40": {
     "doc": "Updates",
     "title": "Installing Updates",
-    "content": "Whenever a new version of the app is released, updates will be automatically downloaded and installed on macOS and Windows. On Linux, automatic update functionality has not been implemented yet. At the moment, each new version of the app needs to be manually downloaded and installed. Automatic update functionality is temporarily disabled. This page will be updated when the issue is resolved. ",
+    "content": "Whenever a new version of the app is released, updates will be automatically downloaded and installed on macOS and Windows. On Linux, automatic update functionality has not been implemented yet. At the moment, each new version of the app needs to be manually downloaded and installed. The issue with the automatic updates has been resolved for macOS and Windows. If you installed the SiLVi on your computer before the version 0.5.3, please download the latest installer for your operating system. ",
     "url": "/installation/updates.html#installing-updates",
     
     "relUrl": "/installation/updates.html#installing-updates"
