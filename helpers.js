@@ -4369,7 +4369,6 @@ function addInfoRow(tableEl, infoText) {
       const newRow = tableBody.insertRow(0);
       newRow.classList.add('empty-table-info');
       const newCell = newRow.insertCell(0);
-      console.log('tableHead cells:', tableHead.rows[0].cells.length)
       const colNum = tableHead.rows[0].cells.length; // Get the column count in the header
       newCell.colSpan = colNum;
       newCell.textContent = infoText;

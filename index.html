@@ -624,6 +624,73 @@
               </div>
             </div>
           </div>
+          <!-- Video Metadata -->
+          <div class="card mt-3">
+            <div class="card-header">
+              <div id="notes-bar" class="d-flex justify-content-between align-items-center">
+                <div class="fw-bold">
+                  Video Metadata
+                </div>
+                <div>
+                  <button id="export-metadata-btn" type="button" class="btn btn-icon-small" tabindex="-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Export metadata"><span class="material-symbols-rounded">download</span></button>
+                  <button id="metadata-panel-collapse-btn" class="btn btn-icon-small" tabindex="-1" type="button" data-bs-target="#metadata-collapse" data-bs-toggle="collapse">
+                    <span class="material-symbols-rounded">visibility_off</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div id="metadata-collapse" class="collapse" data-collapse-button="#metadata-panel-collapse-btn">
+              <div class="card-body small">
+                <div id="metadata-div">
+                  <div id="metadata-save-status-div" class="d-flex align-items-start invisible">
+                    <button type="button" class="btn btn-icon-small ms-2 text-success save-status-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Save status">
+                      <span class="material-symbols-rounded">published_with_changes</span>
+                    </button>
+                    <span class="fw-lighter last-edit-time" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Last edit"></span>
+                  </div>
+                  <div class="table-responsive">
+                    <table id="metadata-table" class="table table-sm table-striped table-hover small">
+                      <thead>
+                        <tr class="text-start">
+                          <th id="metadata-key" scope="col">Description</th>
+                          <th id="metadata-value" scope="col">Value</th>
+                          <th id="metadata-type" scope="col">Type</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td headers="metadata-key">
+                            <div class="input-group input-group-sm ethogram-font"><input class="form-control" list="metadata-key-datalist" placeholder="Type to add/edit description "></div>
+                          </td>
+                          <td headers="metadata-value">
+                            <div class="input-group input-group-sm ethogram-font"><input class="form-control" list="metadata-value-datalist"></div>
+                          </td>
+                          <td headers="metadata-type">
+                            <select class="form-select form-select-sm">
+                              <option selected>Select a type</option>
+                              <option value="binary">Binary (e.g. tool reuse observed?)</option>
+                              <option value="categorical">Categorical (e.g. tool material)</option>
+                              <option value="numerical">Numerical (e.g. temperature) </option>
+                            </select>
+                          </td>
+                          <td></td>
+                          
+                        </tr>
+                        <tr class="empty-table-info">
+                          <td colspan="4">Entries of video metadata will appear here</td>
+                        </tr>
+                      </tbody>
+                      <datalist id="metadata-key-datalist"></datalist>
+                      <datalist id="metadata-value-datalist"></datalist>
+                      <datalist id="metadata-type-datalist"></datalist>
+                    </table>
+                  </div>
+                  <button class="btn btn-sm btn-outline-secondary">Add new</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- Notes -->
           <div class="card mt-3">
             <div class="card-header">

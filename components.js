@@ -718,13 +718,15 @@ class Player {
     if (metadataFilePath) {
       metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
       if (metadataRsp) {
+
+        console.log('Metadata', metadataRsp);
         
         if (metadataRsp.timestamp) {
-          Player.setCurrentTimeAll(metadataRsp.timestamp);
+          Player.setCurrentTimeAll(metadataRsp.timestamp?.value);
         }
 
         // Look for saved individual names first in metadata, then in config if no names in metadata
-        const nameArr = metadataRsp.individuals ?? Config.individualNames;
+        const nameArr = metadataRsp.individuals?.value ?? Config.individualNames;
         Player.setIndividualNames(nameArr);
       }
 
@@ -1271,12 +1273,18 @@ class Player {
         if (metadataFilePath) {
           metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
           
-          // Look for saved timestamp
-          Player.setCurrentTimeAll(metadataRsp?.timestamp);
+          if (metadataRsp) {
+          console.log('Metadata', metadataRsp);
 
-          // Look for saved individual names first in metadata, then in config if no names in metadata
-          const nameArr = metadataRsp.individuals ?? Config.individualNames;
-          Player.setIndividualNames(nameArr);
+            // Look for saved timestamp
+            Player.setCurrentTimeAll(metadataRsp.timestamp?.value);
+            
+            // Look for saved individual names first in metadata, then in config if no names in metadata
+            const nameArr = metadataRsp.individuals?.value ?? Config.individualNames;
+            Player.setIndividualNames(nameArr);
+
+          }
+
 
 
         }
@@ -4516,7 +4524,7 @@ class Player {
     }
 
     // Update metadata
-    Player.getMetadata?.().updateVideoFPS?.();
+    Player.getMetadata?.()?.updateVideoFPS?.();
 
     return this.frameRate;
 
@@ -4539,7 +4547,7 @@ class Player {
     this.aspectRatio = parsedAspectRatio;
 
     // Update metadata
-    Player.getMetadata?.().updateVideoAspectRatio?.();
+    Player.getMetadata?.()?.updateVideoAspectRatio?.();
 
     // Convert aspect ratio to percentage for CSS aspect-ratio property
     const aspectRatioPercentage = (1 / parsedAspectRatio * 100).toFixed(2) + '%';
@@ -9110,34 +9118,253 @@ class Hotkey {
 
 }
 
+/**
+ * Class representing a metadata entry. Each entry has a key, value and type.
+ * Type can be binary, numerical, categorical, text or array.  
+ */
+class MetadataEntry { 
+
+  static validTypes = ['binary', 'numerical', 'categorical', 'text', 'array'];
+  static userDefinableTypes = MetadataEntry.validTypes.filter(type => type !== 'array'); // Array type is not user definable because it is mainly used for storing multiple values for a key and does not have a clear representation in the UI.
+
+  constructor(key, value, type) {
+    for (const arg of [key, value, type]) {
+      if (typeof arg === 'undefined') {
+        throw new Error(`Invalid argument for metadata entry: ${arg}`);
+      }
+    }
+
+    // Check if type is valid
+    if (!MetadataEntry.validTypes.includes(type)) {
+      throw new Error(`Invalid type for metadata entry: ${type}`);
+    }
+    
+    this._type = type;
+    this._key = key;
+    this._value = value;
+
+    // Save defined values for categorical type
+    if (type === 'categorical') {
+      this._definedValues = new Set();
+      this._definedValues.add(value);
+    }
+  }
+  
+  get key() {
+    return this._key;
+  }
+  
+  get value() {
+    return this._value;
+  }
+
+  get type() {
+    return this._type;
+  }
+
+  get definedValues() {
+    if (this.type !== 'categorical') {
+      throw new Error(`Only metadata entries with categorical type have defined values! This entry has type ${this.type}`);
+    }
+    return this._definedValues;
+  }
+
+  set key(key) {
+    this._key = key;
+  }
+  
+  set value(value) {
+    if (typeof value === 'undefined') {
+      throw new Error(`Invalid value for metadata entry: ${value}`);
+    }
+
+    if (this.type === 'binary' && typeof value !== 'boolean') {
+      throw new Error(`Invalid value type for binary metadata entry: ${value}`);
+    }
+
+    if (this.type === 'numerical' && (typeof value !== 'number' || !Number.isFinite(value))) { 
+      throw new Error(`Invalid value type for numerical metadata entry: ${value}`);
+    }
+
+    if (this.type === 'array' && !Array.isArray(value)) {
+      throw new Error(`Invalid value type for array metadata entry: ${value}`);
+    }
+
+    // Add to defined values if type is categorical
+    if (this.type === 'categorical') {
+      this._definedValues?.add?.(value);
+    }
+
+    this._value = value;
+
+  }
+
+  set type(type) {
+    if (!MetadataEntry.validTypes.includes(type)) {
+      throw new Error(`Invalid type for metadata entry: ${type}`);
+    }
+    this._type = type;
+  }
+
+  /**
+   * Updates the DOM elements linked to a metadata entry with the given key, value and type. This includes datalist options for autocompletion and table rows for displaying metadata entries. If the DOM elements do not exist yet for the given key, they will be created.
+   * @returns 
+   */
+  updateDomEls() {
+
+    const key = this.key;
+    const value = this.value;
+    const type = this.type;
+
+    // Exclude 'array' type from UI
+    if (type === 'array') return;
+
+    // Get the datalist element
+    const datalistEl = document.getElementById('metadata-key-datalist');
+    if (!datalistEl) return;
+
+    // Create an option element if it does not exist yet for the given key and set its value
+    let optionEl = datalistEl.querySelector(`option[value="${key}"]`);
+    if (!optionEl) {
+      optionEl = document.createElement('option');
+      datalistEl.append(optionEl);
+    }
+    optionEl.value = key;
+    optionEl.text = key;
+
+    // Get the table elements
+    const tableEl = document.getElementById('metadata-table');
+    if (!tableEl) return;
+    
+    // Get the table body to add new rows/select existing rows
+    const tableBody = tableEl.querySelector('tbody');
+    if (!tableBody) return;
+    
+    const existingRowEl = tableBody.querySelector(`tr[data-key="${key}"]`);
+    
+    // Check if the key and value combination already exists in the table element, if not add it as a row
+    if (!existingRowEl) {
+      const rowEl = tableBody.insertRow(0);
+      rowEl.dataset.key = key;
+      rowEl.dataset.value = value;
+      rowEl.dataset.type = type;
+
+      // Update key and value table cells
+      const keyCell = rowEl.insertCell(0);
+      keyCell.headers = 'metadata-key';
+
+      const valueCell = rowEl.insertCell(1);
+      valueCell.headers = 'metadata-value';
+
+      const typeCell = rowEl.insertCell(2);
+      typeCell.headers = 'metadata-type';
+      
+      // Add input elements inside cells to make them editable
+      // Input element is also necessary for using datalists for autocompletion 
+      [keyCell, valueCell].forEach(cell => {
+        const inputGroupEl = document.createElement('div');
+        inputGroupEl.classList.add('input-group', 'input-group-sm', 'ethogram-font');
+        const inputEl = document.createElement('input');
+        inputEl.classList.add('form-control');
+        inputGroupEl.append(inputEl);
+        cell.append(inputGroupEl);
+      });
+
+      // Add select element into type cell for valid types options
+      const typeSelectEl = document.createElement('select');
+      typeSelectEl.classList.add('form-select', 'form-select-sm', 'ethogram-font');
+      MetadataEntry.validTypes.forEach(validType => {
+        const optionEl = document.createElement('option');
+        optionEl.value = validType;
+        optionEl.text = validType;
+        if (validType === type) {
+          optionEl.selected = true;
+        }
+        typeSelectEl.append(optionEl);
+      });
+      typeCell.append(typeSelectEl);
+
+      const keyInputEl = keyCell.querySelector('input');
+      const valueInputEl = valueCell.querySelector('input');
+      if (!keyInputEl || !valueInputEl) return;
+
+      keyInputEl.value = key;
+      valueInputEl.value = value;
+
+      // Connect datalist elements input elements
+      keyInputEl.setAttribute('list', 'metadata-key-datalist');
+      valueInputEl.setAttribute('list', 'metadata-value-datalist');
+
+      tableBody.append(rowEl)
+      
+      return;
+
+    }
+  
+    // If the key already exists in the table, update the value and type for the existing row
+    if (existingRowEl) {
+      existingRowEl.dataset.key = key;
+      existingRowEl.dataset.value = value;
+      existingRowEl.dataset.type = type;
+
+      const keyInputEl = existingRowEl.querySelector('td[headers="metadata-key"]')?.querySelector('input');
+      const valueInputEl = existingRowEl.querySelector('td[headers="metadata-value"]')?.querySelector('input');
+      if (!keyInputEl || !valueInputEl) return;
+
+      keyInputEl.value = key;
+      valueInputEl.value = value;
+
+      return;
+
+    }
+
+
+
+  }
+
+  /**
+   * Converts a MetadataEntry instance to a plain object for easier serialization when saving to file or sending to the backend.
+   * @returns {Object} Object consisting of the key, value and type of the MetadataEntry instance
+   */
+  toObject() { 
+    return {
+      key: this.key,
+      value: this.value,
+      type: this.type
+    };
+  }
+
+}
+
 class Metadata {
 
   constructor() {
     this.entries = new Map([
-      ['videoName', null],
-      ['videoFPS', null],
-      ['timestamp', null],
-      ['username', null],
-      ['actions', null],
-      ['individuals', null],
-      ['appVersion', null],
-      ['classIds', null],
-      ['classNames', null],
-      ['classColors', null],
-      ['classRunningCounts', null],
+      ['videoName', new MetadataEntry('videoName', null, 'text')],
+      ['videoFPS', new MetadataEntry('videoFPS', null, 'numerical')],
+      ['timestamp', new MetadataEntry('timestamp', null, 'numerical')],
+      ['username', new MetadataEntry('username', null, 'text')],
+      ['actions', new MetadataEntry('actions', null, 'array')],
+      ['individuals', new MetadataEntry('individuals', null, 'array')],
+      ['appVersion', new MetadataEntry('appVersion', null, 'text')],
+      ['classIds', new MetadataEntry('classIds', null, 'array')],
+      ['classNames', new MetadataEntry('classNames', null, 'array')],
+      ['classColors', new MetadataEntry('classColors', null, 'array')],
+      ['classRunningCounts', new MetadataEntry('classRunningCounts', null, 'array')],
     ]);
     
     const mainPlayer = Player.getMainPlayer();
     if (mainPlayer) {
-      this.entries.set('videoName', mainPlayer.getName());
-      this.entries.set('videoFPS', mainPlayer.getFrameRate());
-      this.entries.set('timestamp', mainPlayer.getCurrentTime());
+      this.entries.get('videoName')._value = mainPlayer.getName() ?? null;
+      this.entries.get('videoFPS')._value = mainPlayer.getFrameRate() ?? null;
+      this.entries.get('timestamp')._value = mainPlayer.getCurrentTime() ?? null;
     }
 
-    this.entries.set('username', Player.getUsername());
-    this.entries.set('actions', Player.getActionNames());
-    this.entries.set('individuals', Player.getIndividualNames());
-    this.entries.set('appVersion', Player.getAppVersion());
+    this.entries.get('username')._value = Player.getUsername() ?? null;
+    this.entries.get('actions')._value = Player.getActionNames() ?? null;
+    this.entries.get('individuals')._value = Player.getIndividualNames() ?? null;
+    this.entries.get('appVersion')._value = Player.getAppVersion() ?? null;
+    
     
   }
 
@@ -9146,43 +9373,43 @@ class Metadata {
   }
 
   get timestamp() {
-    return this.entries.get('timestamp');
+    return this.entries.get('timestamp')?.value;
   }
 
   get videoName() {
-    return this.entries.get('videoName');
+    return this.entries.get('videoName')?.value;
   }
 
   get videoFPS() {
-    return this.entries.get('videoFPS');
+    return this.entries.get('videoFPS')?.value;
   }
 
   get username() {
-    return this.entries.get('username');
+    return this.entries.get('username')?.value;
   }
 
   get actions() {
-    return this.entries.get('actions');
+    return this.entries.get('actions')?.value;
   }
 
   get individuals() {
-    return this.entries.get('individuals');
+    return this.entries.get('individuals')?.value;
   }
 
   get classIds() {
-    return this.entries.get('classIds');
+    return this.entries.get('classIds')?.value;
   }
    
   get classNames() {
-    return this.entries.get('classNames');
+    return this.entries.get('classNames')?.value;
   }
 
   get classColors() {
-    return this.entries.get('classColors');
+    return this.entries.get('classColors')?.value;
   }
 
   get classRunningCounts() {
-    return this.entries.get('classRunningCounts');
+    return this.entries.get('classRunningCounts')?.value;
   }
 
   has(key) {
@@ -9191,7 +9418,16 @@ class Metadata {
 
   update(key, value) {
     if (this.has(key)) {
-      this.entries.set(key, value);
+      try {
+        const metadataEntry = this.entries.get(key);
+        console.log(`Updating metadata entry for key ${key} with value ${value}`);
+        metadataEntry.value = value;
+        console.log('Updated entry', metadataEntry)
+        metadataEntry.updateDomEls();
+      } catch (error) {
+        console.log(`Failed to update metadata entry for key ${key} with value ${value}: ${error}`);
+        return;
+      }
     }
   }
 
@@ -9262,14 +9498,22 @@ class Metadata {
 
     // Always update the timestamp
     this.updateTimestamp();
-    
-    // Convert entries from a Map to an Object and finally to a JSON string
-    let jsonString = JSON.stringify(Object.fromEntries(this.entries), (key, value) => {
-      if (value === undefined) {
-        return null;
+
+    // Convert entries from a Map to an Object and finally to a JSON string, while converting MetadataEntry instances to plain objects using the toObject method for easier serialization
+    const jsonString = JSON.stringify(Object.fromEntries(this.entries), (key, value) => {
+      if (value instanceof MetadataEntry) {
+        return value.toObject?.();
       }
       return value;
     });
+    
+    // // Convert entries from a Map to an Object and finally to a JSON string
+    // let jsonString = JSON.stringify(Object.fromEntries(this.entries), (key, value) => {
+    //   if (value === undefined) {
+    //     return null;
+    //   }
+    //   return value;
+    // });
 
     const response = await window.electronAPI.saveMetadata(jsonString, this.videoName);
     return response;
@@ -9382,7 +9626,6 @@ class BoundingBox {
     if ( !(bBox instanceof BoundingBox) ) return;
 
     return bBox;
-
 
   }
 
