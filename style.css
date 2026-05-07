@@ -250,12 +250,12 @@ span.filled {
   'GRAD' -25
 }
 
-.action-table-icon {
-  font-size: 20px;
-  font-variation-settings: 'opsz' 20;
+.table-btn-icon {
+  font-size: 24px;
+  font-variation-settings: 'opsz' 24;
   font-variation-settings: 
   'FILL' 0,
-  'wght' 300,
+  'wght' 200,
   'GRAD' 0
 }
 
@@ -436,10 +436,14 @@ video {
   --bs-popover-border-color: var(--bs-warning-border-subtle);
 }
 
-.ethogram-font .form-control {
-  font-size: 11px;
+.table-font .form-control {
+  font-size: 12px;
   min-width: 80px;
   max-width: fit-content;
+}
+
+.table-font .form-select {
+  font-size: 12px;
 }
 
 .last-edit-time {

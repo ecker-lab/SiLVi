@@ -1905,6 +1905,52 @@ if (assignClassNamesToIndivsBtn) {
   assignClassNamesToIndivsBtn.addEventListener('click', async (e) => await Player.handleAssignClassNamesBtnClick(e));
 }
 
+// Handle toggling the visibility of video metadata table via a button on the table
+const metadataTable = document.getElementById('metadata-table');
+if (metadataTable) {
+  const toggleBtn = metadataTable.querySelector('button.toggle-btn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+
+      // Get all rows of the table
+      const allRows = metadataTable.querySelectorAll('tbody tr');
+      
+      // Get able rows that should always be visible (e.g. header and info rows)
+      let alwaysVisibleRows = [];
+
+      // Get table rows that contain data and can be toggled (not the header or info rows)      
+      let dataRows = [];
+
+      allRows.forEach(row => {
+        if (row.classList.contains('always-visible')) {
+          alwaysVisibleRows.push(row);
+        } else {
+          dataRows.push(row);
+        }
+      });
+
+      // Get the status of the toggle button to determine whether to show or hide the rows
+      const isHidden = toggleBtn.dataset.tableVisibility === 'hidden';
+      if (isHidden) {
+        // Make all data rows visible
+        dataRows.forEach(row => row.classList.remove('d-none'));
+
+        // Update the button status
+        toggleBtn.dataset.tableVisibility = 'visible';
+        toggleBtn.textContent = 'Hide data table';
+
+      } else {
+        // Hide all data rows
+        dataRows.forEach(row => row.classList.add('d-none'));
+
+        // Update the button status
+        toggleBtn.dataset.tableVisibility = 'hidden';
+        toggleBtn.textContent = 'Show data table';
+      }
+
+    });
+  }
+}
 
 // Remove keypressHandler for changing hotkeys upon Modal dismissal 
 const modalEls = document.querySelectorAll('.modal');

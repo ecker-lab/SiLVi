@@ -2743,7 +2743,7 @@ function addEthogramRow(obs, hideAlert) {
     // Add delete button
     const deleteBtn = document.createElement('span');
     deleteBtn.role = 'button';
-    deleteBtn.classList.add('material-symbols-rounded', 'action-table-icon', 'me-1');
+    deleteBtn.classList.add('material-symbols-rounded', 'table-btn-icon', 'me-1');
     deleteBtn.textContent = 'delete';
 
     // Delete the observation when user clicks the delete button
@@ -2821,28 +2821,28 @@ function addEthogramRow(obs, hideAlert) {
    *  */ 
   // Add subject input element
   const subjectInputGroupEl = document.createElement('div'); // Bootstrap input group element
-  subjectInputGroupEl.classList.add('input-group', 'input-group-sm', 'ethogram-font');
+  subjectInputGroupEl.classList.add('input-group', 'input-group-sm', 'table-font');
   const subjectInputEl = document.createElement('input');
   subjectInputEl.classList.add('form-control');
   subjectInputGroupEl.append(subjectInputEl);
 
   // Add action input element
   const actionInputGroupEl = document.createElement('div'); // Bootstrap input group element
-  actionInputGroupEl.classList.add('input-group', 'input-group-sm', 'ethogram-font');
+  actionInputGroupEl.classList.add('input-group', 'input-group-sm', 'table-font');
   const actionInputEl = document.createElement('input');
   actionInputEl.classList.add('form-control');
   actionInputGroupEl.append(actionInputEl);
 
   // Add target input element
   const targetInputGroupEl = document.createElement('div'); // Bootstrap input group element
-  targetInputGroupEl.classList.add('input-group', 'input-group-sm', 'ethogram-font');
+  targetInputGroupEl.classList.add('input-group', 'input-group-sm', 'table-font');
   const targetInputEl = document.createElement('input');
   targetInputEl.classList.add('form-control');
   targetInputGroupEl.append(targetInputEl);
 
   // Add starting time input element
   const startTimeInputGroupEl = document.createElement('div'); // Bootstrap input group element
-  startTimeInputGroupEl.classList.add('input-group', 'input-group-sm', 'ethogram-font');
+  startTimeInputGroupEl.classList.add('input-group', 'input-group-sm', 'table-font');
   const startTimeInputEl = document.createElement('input');
   startTimeInputEl.classList.add('form-control');
   startTimeInputEl.type = 'number';
@@ -2852,7 +2852,7 @@ function addEthogramRow(obs, hideAlert) {
   
   // Add ending time input element
   const endTimeInputGroupEl = document.createElement('div'); // Bootstrap input group element
-  endTimeInputGroupEl.classList.add('input-group', 'input-group-sm', 'ethogram-font');
+  endTimeInputGroupEl.classList.add('input-group', 'input-group-sm', 'table-font');
   const endTimeInputEl = document.createElement('input');
   endTimeInputEl.classList.add('form-control');
   endTimeInputEl.type = 'number';

@@ -671,7 +671,7 @@ class Player {
     Config.actionNames = nameArr;
     const response = await Config.saveToFile();
     if (!response) {
-      console.log('Action names could not be saved to config file!', 'error');
+      console.log('Action names could not be saved to config file!');
       return;
     }
 
@@ -718,8 +718,6 @@ class Player {
     if (metadataFilePath) {
       metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
       if (metadataRsp) {
-
-        console.log('Metadata', metadataRsp);
         
         if (metadataRsp.timestamp) {
           Player.setCurrentTimeAll(metadataRsp.timestamp?.value);
@@ -1274,7 +1272,6 @@ class Player {
           metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
           
           if (metadataRsp) {
-          console.log('Metadata', metadataRsp);
 
             // Look for saved timestamp
             Player.setCurrentTimeAll(metadataRsp.timestamp?.value);
@@ -2113,7 +2110,7 @@ class Player {
     Config.skipSeconds = this.skipSeconds;
     const response = await Config.saveToFile();
     if (!response) {
-      console.log("Couldn't save the skip seconds to config file!", 'error');
+      console.log(`Couldn't save the skip seconds to config file!`, 'error');
     }
 
   }
@@ -2544,16 +2541,12 @@ class Player {
       if (nameIdx < 0) return;
 
       // Get the indices of tracks belonging each class ID in the master array
-      console.log(idMap)
       const indices = idMap.get?.(classId)?.values?.();
       if (typeof indices === 'undefined') return;
       const trackIdxArr = Array.from(indices).flat(Infinity); // Flatten the index array
 
-      console.log('trackIdxArr', trackIdxArr);
-
       // Name of each track in the master array corresponding to this indices
       for (const trackIdx of trackIdxArr) {
-        // console.log('trackIdx', trackIdx)
         const nameOrder = masterArr.at(trackIdx)?.setNameOrder?.(nameIdx);
         if (typeof nameOrder === 'undefined') return;
       }
@@ -2718,7 +2711,6 @@ class Player {
    */
   static hasClassNames() {
     const nameArr = Player.getClassNames();
-    console.log('Class names:', nameArr)
     return (
       Array.isArray(nameArr) &&
       nameArr.length > 0 &&
@@ -5902,7 +5894,6 @@ class Player {
       // Calculate the current running count
       // If class ID is in the Count Map, get its count and add 1 
       // If class ID is NOT in the Count Map, get its value from TrackingMap, add 1, and finally add it to the Map
-      console.log(trackingMap)
       const runningCount = 1 + (result.countObj.hasOwnProperty(classId) ? result.countObj[classId] : trackingMap.getClassRunningCount?.(classId));
       if (!Number.isSafeInteger(runningCount)) return; // Error checking
       result.countObj[classId] = runningCount;  // Update the return Object
@@ -6010,7 +6001,6 @@ class Player {
     if (result.withLabels) {
       // Get the count object
       const countObj = result.countObj;
-      console.log('count object from snapshot data:', countObj);
       if ( (!countObj instanceof Object) ) {
         showAlertToast('Please try again!', 'error', 'Failed to Export Snapshot Data');
         return; 
@@ -6039,7 +6029,6 @@ class Player {
 
     // Save the changes to the Player class
     const updatedCounts = trackingMap.getClassRunningCounts?.();
-    console.log('Updated class running counts: ', updatedCounts);
     if ( !(updatedCounts instanceof Object) ) {
       showAlertToast(
         'Saving class running counts failed! Please try again.', 
@@ -6529,11 +6518,8 @@ class Input {
       for (let i = 0; i < labelEls.length; i++) {
         labelEls[i].textContent = textArray[i];
       }
-      // return labelEls.map((labelEl, index) => {
-      //   labelEl.textContent = textArray[index];
-      // });
     } else {
-      console.log("Provide a string array as the number of labels for the input!")
+      console.log('Provide a string array as the number of labels for the input!')
       return
     }
   }
@@ -7081,21 +7067,17 @@ class TrackingMap {
 
     // Calculate and update class running counts from the config file depending on the classes in the current tracks
     const countConfigObj = Config.classRunningCounts;
-    console.log('countConfigObj', countConfigObj);
 
     // Get the unique class IDs;
     idMap.keys().forEach((key, idx) => {
       const classId = key.toString(); 
-      console.log(classId)
-      console.log(`classId ${classId} in config?`, countConfigObj?.hasOwnProperty(classId))
-
       classMap.set(classId, {
         id: classId,
         name: matchingCounts ? classNames[idx] : null,
         color: matchingCounts ? classColors[idx] : null,
         runningCount: countConfigObj?.hasOwnProperty(classId) ? countConfigObj[classId] : -1  // Count the running number of tracks per class ID across snapshots when exporting labels with snapshots is selected
       });
-      console.log(`runningCount for class ${classId}`, this.classMap?.get(classId)?.runningCount);
+
     });
 
     updateClassEls();
@@ -7179,8 +7161,6 @@ class TrackingMap {
     if ( !(classObj instanceof Object) ) return;
 
     classObj.runningCount = parsedRunningCount;
-
-    console.log(this.classMap)
 
     return classObj.runningCount;
 
@@ -7359,45 +7339,6 @@ class TrackingMap {
 
   }
   
-  // /**
-  //  * 
-  //  * @param {*} key 
-  //  * @param {*} value 
-  //  */
-  // set(key, value) {
-  //   // this.history.push(new Map(this.tracks));
-  //   this.tracks.set(key.toString(), value);  // Keys are always strings 
-  // }
-
-  /**
-   * Add an entry from a BoundingBox instance
-   * @param {BoundingBox} bBox BoundingBox instance
-   */
-  // addFromBBox(bBox) {
-  //   if (!(bBox instanceof BoundingBox)) {
-  //     console.log('Input must be an instance of the BoundingBox class!');
-  //     return;
-  //   }
-
-  //   const frameNumber = parseInt(bBox.getTrackNumber());
-  //   if (Number.isNaN(frameNumber)) return;
-    
-  //   this.get(frameNumber).push({
-  //     'trackNumber': bBox.trackNumber,
-  //     'trackId': bBox.trackId,
-  //     'x': bBox.x,
-  //     'y': bBox.y,
-  //     'width': bBox.width,
-  //     'height': bBox.height,
-  //     'confidenceTrack': bBox.confidenceTrack,
-  //     'classId': bBox.classId,
-  //     'nameOrder': bBox.nameOrder,
-  //     'confidenceId': bBox.confidenceId
-  //   });
-
-
-  // }
-
   /**
    * Sets the individual name array for tracks
    * @param {String[]} nameArr 
@@ -7444,54 +7385,6 @@ class TrackingMap {
     return bBoxArr;
     
   }
-
-  
-  /**
-   * Gets the Array of track Objects of a given class and track ID
-   * @param {Number | String} classId 
-   * @param {Number | String} trackId 
-   * @returns {Object[]} Array of track objects
-   */
-  // getTrackObjectsById(classId, trackId) {
-  //   if (typeof classId === 'undefined' || classId === null) return;
-  //   if (typeof trackId === 'undefined' || trackId === null) return;
-    
-  //   // Get the ID map
-  //   const idMap = this.getIdMap();
-  //   if (!idMap || !(idMap instanceof Map)) {
-  //     console.log('idMap is not a Map!');
-  //     return;
-  //   }
-    
-  //   // Get the class of track objects in the master array for this frame number
-  //   const classIdStr = classId.toString();
-  //   const trackIdStr = trackId.toString();
-
-  //   const classMap = idMap.get(classIdStr);
-  //   if (!classMap || !(classMap instanceof Map)) {
-  //     console.log(`classMap for ${classIdStr} is not a Map!`);
-  //     return;
-  //   }
-
-  //   // Get the index array for this track ID
-  //   const idxArr = classMap.get(trackIdStr);
-  //   if(!idxArr || !Array.isArray(idxArr)) {
-  //     console.log(`idxArr for ${trackIdStr} is not an Array!`);
-  //     return;
-  //   }
-
-  //   // Get the actual elements from the master array
-  //   const trackObjArr = this.getTracks();
-  //   if (!trackObjArr || !Array.isArray(trackObjArr)) return;
-
-  //   const objArr = idxArr
-  //     .filter(idx => Number.isSafeInteger(idx) && idx >= 0 && idx < trackObjArr.length)
-  //     .map(idx => trackObjArr[idx]);
-
-  //   return objArr;
-
-  // }
-
 
 
   /**
@@ -8487,27 +8380,6 @@ class Hotkey {
 
       }
 
-
-      
-      // // Get the kdb element
-      // const kbdEls = domEl.querySelectorAll('kbd');
-
-      // if (Array.from(kbdEls).length !== keysAndModifiers.length) {
-      //   console.log(`kbd HTML element count must be equal to the total count of keys and modifiers for each Hotkey! kbd count: ${Array.from(kbdEls).length}, key count: ${keysAndModifiers.length}`);
-      //   return;
-      // }
-
-      // kbdEls.forEach((kbdEl, index) => {
-
-      //   const key = keysAndModifiers[index];
-
-      //   console.log(key);
-        
-      //   // Fill the kbd element depending on whether key is a special element or not
-      //   kbdEl.innerHTML = Hotkey.htmlMap.has(key) ? Hotkey.htmlMap.get(key) : key;
-
-      // })
-
       
     })
 
@@ -9120,12 +8992,35 @@ class Hotkey {
 
 /**
  * Class representing a metadata entry. Each entry has a key, value and type.
- * Type can be binary, numerical, categorical, text or array.  
+ * Type can be binary, numeric, categorical, text or array.  
  */
 class MetadataEntry { 
 
-  static validTypes = ['binary', 'numerical', 'categorical', 'text', 'array'];
-  static userDefinableTypes = MetadataEntry.validTypes.filter(type => type !== 'array'); // Array type is not user definable because it is mainly used for storing multiple values for a key and does not have a clear representation in the UI.
+  // Default keys (and their predefined types) retrieved by the reading the video metadata before any user input. These keys will later be used when creating a Metadata instance.
+  static defaultKeyTypePairs = {
+    'videoName': 'text',
+    'videoFPS': 'numeric',
+    'timestamp': 'numeric',
+    'username': 'text',
+    'actions': 'array',
+    'individuals': 'array',
+    'appVersion': 'text',
+    'classIds': 'array',
+    'classNames': 'array',
+    'classColors': 'array',
+    'classRunningCounts': 'array'
+  };
+
+  static validTypes = ['binary', 'numeric', 'categorical', 'text', 'array'];
+
+  // Array type is not user definable because it is mainly used for storing multiple values for a key and does not have a clear representation in the UI. 
+  static userDefinableTypes = MetadataEntry.validTypes.filter(type => type !== 'array'); 
+
+  // Keys that should not be shown in the UI because they are either not user definable or not relevant for the user
+  static hiddenKeys = ['appVersion', 'timestamp'];
+
+  // Types of keys that should not be changeable by the user because they are either not user definable or not relevant for the user.
+  static keysWithImmutableType = ['videoFPS', 'videoName', 'appVersion', 'timestamp'];
 
   constructor(key, value, type) {
     for (const arg of [key, value, type]) {
@@ -9178,20 +9073,23 @@ class MetadataEntry {
       throw new Error(`Invalid value for metadata entry: ${value}`);
     }
 
-    if (this.type === 'binary' && typeof value !== 'boolean') {
+    const type = this.type;
+
+    if (type === 'binary' && typeof value !== 'boolean') {
       throw new Error(`Invalid value type for binary metadata entry: ${value}`);
     }
 
-    if (this.type === 'numerical' && (typeof value !== 'number' || !Number.isFinite(value))) { 
-      throw new Error(`Invalid value type for numerical metadata entry: ${value}`);
+    if (type === 'numeric' && (typeof value !== 'number' || !Number.isFinite(value))) { 
+      throw new Error(`Invalid value type for 
+         metadata entry: ${value}`);
     }
 
-    if (this.type === 'array' && !Array.isArray(value)) {
+    if (type === 'array' && !Array.isArray(value)) {
       throw new Error(`Invalid value type for array metadata entry: ${value}`);
     }
 
     // Add to defined values if type is categorical
-    if (this.type === 'categorical') {
+    if (type === 'categorical') {
       this._definedValues?.add?.(value);
     }
 
@@ -9219,6 +9117,9 @@ class MetadataEntry {
     // Exclude 'array' type from UI
     if (type === 'array') return;
 
+    // Exclude hidden keys from UI
+    if (MetadataEntry.hiddenKeys.includes(key)) return;
+    
     // Get the datalist element
     const datalistEl = document.getElementById('metadata-key-datalist');
     if (!datalistEl) return;
@@ -9230,26 +9131,40 @@ class MetadataEntry {
       datalistEl.append(optionEl);
     }
     optionEl.value = key;
-    optionEl.text = key;
+    optionEl.text = `${value} | ${type}`;
 
     // Get the table elements
     const tableEl = document.getElementById('metadata-table');
-    if (!tableEl) return;
+    if (!tableEl) {
+      throw new Error('No table element with id "metadata-table" could be found in the DOM!');
+    };
     
     // Get the table body to add new rows/select existing rows
     const tableBody = tableEl.querySelector('tbody');
-    if (!tableBody) return;
-    
-    const existingRowEl = tableBody.querySelector(`tr[data-key="${key}"]`);
+    if (!tableBody) {
+      throw new Error('No table body element could be found in the DOM!');
+    }
+
+    // Check whether rows should be hidden according to user choice
+    const toggleBtnEl = tableBody.querySelector('button.toggle-btn');
+    if (!toggleBtnEl) {
+      throw new Error('No toggle button could be found in the table body!');
+    }
+    const shouldBeVisible = toggleBtnEl.dataset.tableVisibility !== 'hidden';
     
     // Check if the key and value combination already exists in the table element, if not add it as a row
+    const existingRowEl = tableBody.querySelector(`tr[data-key="${key}"]`);
     if (!existingRowEl) {
       const rowEl = tableBody.insertRow(0);
       rowEl.dataset.key = key;
       rowEl.dataset.value = value;
       rowEl.dataset.type = type;
+      rowEl.classList.add('table-font');
+      if (!shouldBeVisible) {
+        rowEl.classList.add('d-none');
+      }
 
-      // Update key and value table cells
+      // Update key, value and type table cells
       const keyCell = rowEl.insertCell(0);
       keyCell.headers = 'metadata-key';
 
@@ -9258,36 +9173,30 @@ class MetadataEntry {
 
       const typeCell = rowEl.insertCell(2);
       typeCell.headers = 'metadata-type';
+
+      // Add delete button in the end of the row
+      const btnCell = rowEl.insertCell(3);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.classList.add('btn', 'btn-sm', 'material-symbols-rounded', 'table-btn-icon');
+      deleteBtn.textContent = 'Delete';
+      btnCell.append(deleteBtn);
       
       // Add input elements inside cells to make them editable
-      // Input element is also necessary for using datalists for autocompletion 
       [keyCell, valueCell].forEach(cell => {
         const inputGroupEl = document.createElement('div');
-        inputGroupEl.classList.add('input-group', 'input-group-sm', 'ethogram-font');
+        inputGroupEl.classList.add('input-group', 'input-group-sm');
         const inputEl = document.createElement('input');
         inputEl.classList.add('form-control');
         inputGroupEl.append(inputEl);
         cell.append(inputGroupEl);
       });
-
-      // Add select element into type cell for valid types options
-      const typeSelectEl = document.createElement('select');
-      typeSelectEl.classList.add('form-select', 'form-select-sm', 'ethogram-font');
-      MetadataEntry.validTypes.forEach(validType => {
-        const optionEl = document.createElement('option');
-        optionEl.value = validType;
-        optionEl.text = validType;
-        if (validType === type) {
-          optionEl.selected = true;
-        }
-        typeSelectEl.append(optionEl);
-      });
-      typeCell.append(typeSelectEl);
-
+      
+      // Input element is also necessary for using datalists for autocompletion 
       const keyInputEl = keyCell.querySelector('input');
       const valueInputEl = valueCell.querySelector('input');
       if (!keyInputEl || !valueInputEl) return;
 
+      // Set the input element values
       keyInputEl.value = key;
       valueInputEl.value = value;
 
@@ -9295,6 +9204,27 @@ class MetadataEntry {
       keyInputEl.setAttribute('list', 'metadata-key-datalist');
       valueInputEl.setAttribute('list', 'metadata-value-datalist');
 
+      // Add select element into type cell for valid types options
+      const typeSelectEl = document.createElement('select');
+      typeSelectEl.classList.add('form-select', 'form-select-sm');
+      MetadataEntry.validTypes.forEach(validType => {
+        const optionEl = document.createElement('option');
+        optionEl.value = validType;
+        optionEl.text = validType;
+        if (validType === type) {
+          optionEl.selected = true;
+        }        
+        typeSelectEl.append(optionEl);
+
+      });
+
+      // Determine whether the type of the metadata entry is  immutable and should not be changeable by the user in the UI
+      typeSelectEl.disabled = (MetadataEntry.keysWithImmutableType.includes(key));;
+
+      // Append the select element to the type cell
+      typeCell.append(typeSelectEl);
+      
+      // Append the row to the table body
       tableBody.append(rowEl)
       
       return;
@@ -9339,32 +9269,23 @@ class MetadataEntry {
 class Metadata {
 
   constructor() {
-    this.entries = new Map([
-      ['videoName', new MetadataEntry('videoName', null, 'text')],
-      ['videoFPS', new MetadataEntry('videoFPS', null, 'numerical')],
-      ['timestamp', new MetadataEntry('timestamp', null, 'numerical')],
-      ['username', new MetadataEntry('username', null, 'text')],
-      ['actions', new MetadataEntry('actions', null, 'array')],
-      ['individuals', new MetadataEntry('individuals', null, 'array')],
-      ['appVersion', new MetadataEntry('appVersion', null, 'text')],
-      ['classIds', new MetadataEntry('classIds', null, 'array')],
-      ['classNames', new MetadataEntry('classNames', null, 'array')],
-      ['classColors', new MetadataEntry('classColors', null, 'array')],
-      ['classRunningCounts', new MetadataEntry('classRunningCounts', null, 'array')],
-    ]);
-    
-    const mainPlayer = Player.getMainPlayer();
-    if (mainPlayer) {
-      this.entries.get('videoName')._value = mainPlayer.getName() ?? null;
-      this.entries.get('videoFPS')._value = mainPlayer.getFrameRate() ?? null;
-      this.entries.get('timestamp')._value = mainPlayer.getCurrentTime() ?? null;
+
+    // Use a Map to store metadata entries for easier retrieval and update of entries based on their keys. The keys of the Map are the metadata entry keys and the values are MetadataEntry instances.
+    this.entries = new Map();
+
+    // Initialize the metadata entries with default keys and types. The values will be updated later when reading the video metadata and getting user input.
+    for (const [key, type] of Object.entries(MetadataEntry.defaultKeyTypePairs)) {
+      this.entries.set(key, new MetadataEntry(key, null, type));
     }
 
-    this.entries.get('username')._value = Player.getUsername() ?? null;
-    this.entries.get('actions')._value = Player.getActionNames() ?? null;
-    this.entries.get('individuals')._value = Player.getIndividualNames() ?? null;
-    this.entries.get('appVersion')._value = Player.getAppVersion() ?? null;
-    
+    // Update the values for the default keys by reading the video metadata and getting user info.
+    this.updateVideoName();
+    this.updateUsername();
+    this.updateAppVersion();
+    this.updateVideoFPS();
+    this.updateTimestamp();
+    this.updateActions();
+    this.updateIndividuals();
     
   }
 
@@ -9382,6 +9303,10 @@ class Metadata {
 
   get videoFPS() {
     return this.entries.get('videoFPS')?.value;
+  }
+
+  get appVersion() {
+    return this.entries.get('appVersion')?.value;
   }
 
   get username() {
@@ -9420,9 +9345,7 @@ class Metadata {
     if (this.has(key)) {
       try {
         const metadataEntry = this.entries.get(key);
-        console.log(`Updating metadata entry for key ${key} with value ${value}`);
         metadataEntry.value = value;
-        console.log('Updated entry', metadataEntry)
         metadataEntry.updateDomEls();
       } catch (error) {
         console.log(`Failed to update metadata entry for key ${key} with value ${value}: ${error}`);
@@ -10660,215 +10583,6 @@ class DrawnBoundingBox extends BoundingBox {
 
   }
 
-
-  /**
-   * Handles change on the input element for choosing a class for the bounding box drawn by the user
-   * @param {Event} e "change" event on the input element
-   * @returns 
-   */
-  // static handleClassChange(e) {
-
-  //   const mainPlayer = Player.getMainPlayer();
-  //   if (!mainPlayer) return;
-
-  //   const trackingMap = mainPlayer.getTrackingMap();
-  //   if (!(trackingMap instanceof TrackingMap)) return;
-
-  //   const drawingRect = mainPlayer.drawingRect;
-  //   if (!drawingRect) return;
-    
-  //   const drawingCanvas = document.getElementById(Player.drawingCanvasId);
-  //   if (!drawingCanvas) return;
-
-  //   const ctx = drawingCanvas.getContext('2d');
-  //   if (!ctx) return;
-
-  //   const drawnBBox = Player.getDrawnBBox();
-  //   if (!drawnBBox) return;
-
-  //   const firstBBox = drawnBBox.getFirstBBox();
-  //   if (!firstBBox) return;
-
-  //   // Get the select element for class selection
-  //   const classInput = e.target;
-  //   if (!classInput) return;
-
-  //   const outerDiv = document.getElementById(Player.drawnBBoxDivId);
-  //   if (!outerDiv) return;
-
-  //   // Color input element for a new class
-  //   const colorInput = outerDiv.querySelector('input[type="color"]');
-  //   if (!colorInput) return;
-
-  //   // Datalist element containing options for existing classes
-  //   const dataList = outerDiv.querySelector('datalist');
-  //   if (!dataList) return;
-
-  //   // Add event listener to select element within the div 
-  //   //  to confirm drawing of a new bounding box to detect class selection change
-  //   // Get the selected class ID
-  //   // const selectedEl = classInput.options[selectedIdx];
-  //   const inputClassName = classInput.value.trim();
-
-  //   // If no input is given, do nothing
-  //   if (inputClassName === '') {
-  //     DrawnBoundingBox.disableCreation({ 
-  //       title: 'Empty Class Input', 
-  //       content: 'Please enter a class name!'
-  //     });
-  //     return;
-  //   }
-
-  //   // Validate the input: Only allow letters, numbers, dash and underscore
-  //   const isValidName = DrawnBoundingBox.validateClassNameInput(inputClassName);
-  //   if (!isValidName) {
-  //     showPopover({
-  //       domEl: classInput,
-  //       title: 'Invalid Class Name',
-  //       content: `Class names must contain only <span class="badge text-bg-dark">letters</span>, <span class="badge text-bg-dark">numbers</span>, <span class="badge text-bg-dark">underscores</span>, or <span class="badge text-bg-dark">dashes</span>.`,
-  //       placement: 'top',
-  //       type: 'error',
-  //     });
-  //     DrawnBoundingBox.disableCreation();
-  //     return;
-  //   }
-
-  //   // Get the DOM element for new class selection
-  //   const newClassCheck = outerDiv.querySelector('.new-class-check');
-  //   if (!newClassCheck) return;
-    
-  //   // Determine whether the new class option is selected or not
-  //   const isNewClassChecked = newClassCheck.checked;
-
-  //   // Check if the input class name is an existing class
-  //   const isInputNew = !(trackingMap.hasClassName?.(inputClassName));
-
-  //   // Keep track of class properties
-  //   let classId, trackId, classColor;
-
-  //   // If the new class option is selected,
-  //   if (isNewClassChecked) {
-      
-  //     // If input is not new but new class option is checked, warn user
-  //     if (!isInputNew) {
-  //       showPopover({
-  //         domEl: classInput,
-  //         title: 'Failed to Create New Class',
-  //         content: `Class <span class="badge text-bg-dark">${inputClassName}</span> already exist! Either uncheck the option <span class="badge text-bg-dark">New</span> or enter a different name.`,
-  //         placement: 'top',
-  //         type: 'error',
-  //       });
-  //       DrawnBoundingBox.disableCreation();
-  //       return;
-  //     } 
-
-  //     // If input is new
-  //     // Calculate the class ID for the new class name
-  //     // Try adding the new class and track IDs to firstBBox instance
-  //     classId = firstBBox.setClassId(trackingMap.getFirstAvailClassId());
-  //     trackId = firstBBox.setTrackId('0'); // Set the track ID to 0 since this is the first track that belong the newly created class
-      
-  //     // Try setting the class color
-  //     classColor = colorInput.value;
-
-  //     // Show alert if an error occurs
-  //     for (const classProp of [classId, trackId, classColor]) {
-  //       if (typeof classProp === 'undefined' || classProp === null) {
-  //         showPopover({
-  //           domEl: classInput,
-  //           title: 'Failed to Create New Class',
-  //           content: `Class <span class="badge text-bg-dark">${inputClassName}</span> could not be created! Please try again.`,
-  //           placement: 'top',
-  //           type: 'error',
-  //         });
-
-  //         // Disable bounding box creation
-  //         DrawnBoundingBox.disableCreation();
-  //         return;
-  //       }
-  //     }
-      
-  //     // If the new class option is NOT selected
-  //   } else {
-
-  //     // Make sure the input is an existing class
-  //     const isInputValid = !isInputNew;
-
-  //     // If input is not valid, give feedback
-  //     if (!isInputValid) {
-  //       showPopover({
-  //         domEl: classInput,
-  //         title: 'Invalid Class',
-  //         content: `Class <span class="badge text-bg-dark">${inputClassName}</span> does not exist! Either select an existing class or check <span class="badge text-bg-dark">New</span> option to create a new class.`,
-  //         placement: 'top',
-  //         type: 'error',
-  //         hideTimeout: 5000
-  //       });
-  //       DrawnBoundingBox.disableCreation();
-  //       return;
-  //     }
-      
-  //     // If input is valid
-  //     // Get the track ID and color for the selected class
-  //     // Update the properties of the first drawn BoundingBox
-  //     classId = firstBBox.setClassId(dataList.querySelector(`option[value='${inputClassName}']`).dataset.classId);
-  //     trackId = firstBBox.setTrackId(Player.getFirstAvailTrackId(classId));
-  //     classColor = Player.getClassColor(classId);
-
-  //     // console.log('classId, trackId, classColor', classId, trackId, classColor)
-      
-  //     // Show alert if an error occurs
-  //     for (const classProp of [classId, trackId, classColor]) {
-  //       if (typeof classProp === 'undefined' || classProp === null) {
-  //         showPopover({
-  //           domEl: classInput,
-  //           title: 'Failed to Assign Class',
-  //           content: `Assignment to class <span class="badge text-bg-dark">${inputClassName}</span> failed! Please try again.`,
-  //           placement: 'top',
-  //           type: 'error',
-  //         });
-  //         DrawnBoundingBox.disableCreation();
-  //         return;
-  //       }
-
-  //     }
-
-  //   }
-
-  //   // If no errors, allow BoundingBox creation when user confirms the input by clicking the Save button
-  //   DrawnBoundingBox.enableCreation();
-
-  //   // Redraw the bounding box with colors for the selected class
-  //   ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-  //   ctx.strokeStyle = classColor;
-  //   ctx.strokeRect(drawingRect.startX, drawingRect.startY, drawingRect.width, drawingRect.height);
-  //   ctx.beginPath();
-
-  //   // Create the label
-  //   const labelText = `${classId}-${trackId}`;
-  //   ctx.font = '20px tahoma';
-  //   const labelWidth = ctx.measureText(labelText).width + 15;
-  //   const labelHeight = 30;
-  //   const padding = 5;
-    
-  //   // Label coordinates - placed on top left corner of the rectangle
-  //   // width < 0 => drawn from right to left
-  //   // height < 0 => drawn from bottom to top
-  //   const labelX = drawingRect.startX + (drawingRect.width < 0 ? drawingRect.width : 0);
-  //   const labelY = drawingRect.startY + (drawingRect.height < 0 ? drawingRect.height : 0) - labelHeight; 
-
-  //   // Continue drawing after edge cases are handled
-  //   ctx.rect(labelX, labelY, labelWidth, labelHeight);
-  //   ctx.fillStyle = 'white';
-  //   ctx.fill();
-  //   ctx.fillStyle = 'black';
-  //   ctx.fillText(labelText, labelX+padding, labelY+labelHeight-padding)
-  //   ctx.stroke();
-
-
-
-  // }
-
   /**
    * Handles change on the color input element for creating a new class for the bounding box drawn by the user. It only redraws the bounding box with the selected color and does not change the color properties of the class.
    * @param {Event} e e "change" event on the color input element
@@ -10974,7 +10688,6 @@ class DrawnBoundingBox extends BoundingBox {
     
     // If no input is given, warn user
     const className = classInput.value?.trim?.();
-    console.log('Input class name', className);
     if (className === '' || !className) {
       showPopover({
         domEl: classInput,
