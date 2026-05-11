@@ -632,7 +632,7 @@
                   Video Metadata
                 </div>
                 <div>
-                  <button id="export-metadata-btn" type="button" class="btn btn-icon-small" tabindex="-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Export metadata"><span class="material-symbols-rounded">download</span></button>
+                  <button id="export-metadata-btn" type="button" class="btn btn-icon-small" tabindex="-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Export metadata"><span class="material-symbols-rounded">upload</span></button>
                   <button id="metadata-panel-collapse-btn" class="btn btn-icon-small" tabindex="-1" type="button" data-bs-target="#metadata-collapse" data-bs-toggle="collapse">
                     <span class="material-symbols-rounded">visibility_off</span>
                   </button>
@@ -651,37 +651,39 @@
                   <div class="table-responsive">
                     <table id="metadata-table" class="table table-sm table-striped table-hover align-middle ">
                       <thead>
-                        <tr class="text-start">
-                          <th id="metadata-key" scope="col">Description</th>
+                        <tr class="text-start always-visible">
+                          <th id="metadata-key" scope="col">Key</th>
                           <th id="metadata-value" scope="col">Value</th>
-                          <th id="metadata-type" scope="col">Type</th>
-                          <th></th>
+                          <th id="metadata-type" scope="col" class="cursor-help" data-bs-toggle="tooltip" data-bs-custom-class="long-help-tooltip" data-bs-html="true" data-bs-title="<p><b>Binary data:</b><br>Should have only two possible values<br>E.g., <em>Key</em>: tool reuse observed - <em>Value</em>: Yes</p><p><b>Text data:</b><br>Can be any string of characters<br>E.g., <em>Key</em>: Tool material - <em>Value</em>: grass</p><p><b>Numeric data:</b><br>Should be a number<br>E.g., <em>Key</em>: Temperature - <em>Value</em>: 25.5</p>">Type</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr class="table-font always-visible">
                           <td headers="metadata-key">
-                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-key-datalist" placeholder="Type to add/edit description"></div>
+                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-key-datalist" placeholder="Type to add/edit description" name="metadata-key"></div>
                           </td>
                           <td headers="metadata-value">
-                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-value-datalist"></div>
+                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-value-datalist" name="metadata-value"></div>
                           </td>
                           <td headers="metadata-type">
                             <select class="form-select form-select-sm">
-                              <option selected>Select a type</option>
-                              <option value="binary">Binary (e.g. tool reuse observed?)</option>
-                              <option value="text">Text (e.g. tool material)</option>
-                              <option value="numeric">Numeric (e.g. temperature)</option>
+                              <option value="no-selection" selected>Select a type</option>
+                              <option value="binary" >Binary</option>
+                              <option value="text">Text</option>
+                              <option value="numeric">Numeric</option>
                             </select>
                           </td>
                           <td>
                             <button class="btn btn-sm material-symbols-rounded table-btn-icon" data-bs-toggle="tooltip" data-bs-title="Save" data-bs-placement="top">save</button>
                           </td>
+                          <td>
+                            <button class="btn btn-sm material-symbols-rounded table-btn-icon" data-bs-toggle="tooltip" data-bs-title="Delete" data-bs-placement="top">delete_forever</button>
+                          </td>
                         </tr>
                         <tr class="always-visible">
                           <td colspan="5">
                             <div class="d-grid gap-2">
-                              <button class="btn btn-sm btn-outline-dark toggle-btn" data-table-visibility="hidden">Show data table</button>
+                              <button class="btn btn-sm btn-outline-secondary toggle-btn" data-table-visibility="hidden">Show data table</button>
                             </div>
                           </td>
                         </tr>
@@ -868,7 +870,7 @@
                 <!-- <div class="col-10"> -->
                   <form>
                     <div class="row mb-3">
-                      <label for="change-username-input" class="col-3 col-form-label col-form-label-sm text-start cursor-help" data-bs-toggle="tooltip" data-bs-placement="left"  data-bs-title="Username is saved to metadata file to keep track of data provenance">Username</label>
+                      <label for="change-username-input" class="col-3 col-form-label col-form-label-sm text-start cursor-help" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Username is saved to metadata file to keep track of data provenance">Username</label>
                       <div class="col-auto">
                         <div class="input-group input-group-sm">
                           <input id="change-username-input" type="text" class="form-control" placeholder="Enter your username" aria-describedby="username-help-text">

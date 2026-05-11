@@ -121,7 +121,7 @@ function showPopover(options) {
   const { 
     onCanvas = false, x, y, title, content,
     placement, hideTimeout, offset, 
-    customClass, type, showResponseBtn
+    customClass, type
   } = options;
 
   // Determine the DOM element depending on whether the popover should be shown on the main canvas
@@ -2265,7 +2265,6 @@ function handleBehaviorRecordByClick(event) {
 
   }
 
-
   // Get the selected subject element
   const selectedSubjectEl = subjectSelect.options[subjectSelect.selectedIndex];
   
@@ -2329,10 +2328,6 @@ function handleBehaviorRecordByClick(event) {
         
 
       }
-
-
-      
-
 
     }
 

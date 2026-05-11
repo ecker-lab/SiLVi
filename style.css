@@ -233,8 +233,8 @@ span.filled {
 
 .btn-tiny span.material-symbols-rounded {
   font-size: 20px;
-  font-variation-settings: 'opsz' 20;
   font-variation-settings: 
+  'opsz' 20,
   'FILL' 1,
   'wght' 100,
   'GRAD' -25
@@ -255,8 +255,8 @@ span.filled {
   font-variation-settings: 'opsz' 24;
   font-variation-settings: 
   'FILL' 0,
-  'wght' 200,
-  'GRAD' 0
+  'wght' 300,
+  'GRAD' -25
 }
 
 
@@ -403,8 +403,6 @@ video {
   background-color:rgba(16, 16, 16, 0.8)
 }
 
-
-
 .table-scrollable {
   display: block;
   width: 100%;
@@ -414,8 +412,18 @@ video {
 
 .hotkey-tooltip {
   --bs-tooltip-max-width: 500px;
-  /* --bs-tooltip-bg: var(--bs-primary); */
-  /* --bs-tooltip-color: var(--bs-white); */
+}
+
+.long-help-tooltip {
+  --bs-tooltip-max-width: 350px;
+  /* --bs-tooltip-bg: var(--bs-primary);
+  --bs-tooltip-color: var(--bs-white); */
+  --bs-tooltip-padding-x: 1rem;
+  --bs-tooltip-padding-y: 1rem;
+}
+
+.long-help-tooltip .tooltip-inner {
+  text-align: left !important;
 }
 
 .canvas-popover {
@@ -632,7 +640,6 @@ video {
   text-align: start;
 }
 
-
 .cursor-help {
   cursor: help;
 }
@@ -652,12 +659,9 @@ video {
   border-radius: 5px;
 }
 
-
-
 .class-color-text {
   color: white;
   background-color: var(--class-color-text);
-
 }
 
 

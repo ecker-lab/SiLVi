@@ -60,7 +60,9 @@ import {
   BoundingBox, 
   DrawnBoundingBox, 
   Hotkey,
-  Config
+  Config,
+  Metadata,
+  MetadataEntry
 } from './components.js';
 
 import {
@@ -1697,25 +1699,6 @@ if (changeZoomScaleInput) {
 
 }
 
-// // Handle enabling/disabling auto updates
-// const autoUpdateSwitch = document.getElementById('auto-update-switch');
-// if (autoUpdateSwitch) {
-//   autoUpdateSwitch.addEventListener('change', async () => {
-//     const autoUpdateStatus = autoUpdateSwitch.checked ? 'enabled' : 'disabled';
-//     const response = await window.electronAPI.saveToConfig({ autoUpdateStatus: autoUpdateStatus});
-//     if (!response) {
-//       showAlertToast('Please try again!', 'error', 'Automatic Update Status Change Unsuccessful!');
-//     } else if (autoUpdateSwitch.checked) {
-//       showAlertToast('Automatic updates ENABLED!', 'info');
-//     } else {
-//       showAlertToast('Automatic updates DISABLED!', 'info');
-//     }
-
-//   })
-
-
-// }
-
 // Handle checking updates manually
 const checkUpdatesBtn = document.getElementById('check-updates-btn');
 if (checkUpdatesBtn) {
@@ -1905,15 +1888,16 @@ if (assignClassNamesToIndivsBtn) {
   assignClassNamesToIndivsBtn.addEventListener('click', async (e) => await Player.handleAssignClassNamesBtnClick(e));
 }
 
-// Handle toggling the visibility of video metadata table via a button on the table
-const metadataTable = document.getElementById('metadata-table');
+const metadataTable = document.getElementById(Player.metadataTableId);
 if (metadataTable) {
+  
+  // Handle toggling the visibility of video metadata table via a button on the table
   const toggleBtn = metadataTable.querySelector('button.toggle-btn');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
 
       // Get all rows of the table
-      const allRows = metadataTable.querySelectorAll('tbody tr');
+      const allRows = Array.from(metadataTable.rows);
       
       // Get able rows that should always be visible (e.g. header and info rows)
       let alwaysVisibleRows = [];
@@ -1950,6 +1934,29 @@ if (metadataTable) {
 
     });
   }
+
+  // Handle adding/editing metadata entry via the main input elements in the metadata table
+  const addMetadataEntryBtn = metadataTable.querySelector('button[data-bs-title="Save"]');
+  if (addMetadataEntryBtn) {
+    addMetadataEntryBtn.addEventListener('click',  MetadataEntry.handleEditByUser);
+  }
+
+  // Handle autocomplete for keys when user is typing in the key input element
+  const keyInput = metadataTable.querySelector('input[name="metadata-key"]');
+  if (keyInput) {
+    keyInput.addEventListener('input', MetadataEntry.handleKeyAutocomplete);
+    keyInput.addEventListener('focus', Player.userIsTyping);  // Disable hotkeys when user is typing
+    keyInput.addEventListener('blur', Player.userStoppedTyping);  // Enable hotkeys after user stopped typing
+  }
+
+  // Handle autocomplete for values when user is typing in the value input element
+  const valueInput = metadataTable.querySelector('input[name="metadata-value"]');
+  if (valueInput) {
+    valueInput.addEventListener('input', MetadataEntry.handleValueAutocomplete);
+    valueInput.addEventListener('focus', Player.userIsTyping);  // Disable hotkeys when user is typing
+    valueInput.addEventListener('blur', Player.userStoppedTyping);  // Enable hotkeys after user stopped typing
+  }
+
 }
 
 // Remove keypressHandler for changing hotkeys upon Modal dismissal 
