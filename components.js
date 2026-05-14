@@ -715,22 +715,22 @@ class Player {
     showProcessIndicator();
 
     // Search for metadata file in the user data directory
-    let metadataRsp;  // Object to hold response from metadata file reading function
     const metadataFilePath = await window.electronAPI.findMetadataFile(mainPlayer.getSource());
-    if (metadataFilePath) {
-      metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
-      if (metadataRsp) {
-        
-        if (metadataRsp.timestamp) {
-          Player.setCurrentTimeAll(metadataRsp.timestamp?.value);
-        }
 
-        // Look for saved individual names first in metadata, then in config if no names in metadata
-        const nameArr = metadataRsp.individuals?.value ?? Config.individualNames;
-        Player.setIndividualNames(nameArr);
-      }
+    // Object to hold response from metadata file reading 
+    const metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
+    Player.setCurrentTimeAll(metadataRsp?.timestamp?.value);
 
+    try {
+      Player.getMetadata()?.updateFromFileResponse?.(metadataRsp);
+    } catch (err) {
+      console.log('Metadata could not be updated from file response!');
     }
+
+
+    // Look for saved individual names first in metadata, then in config if no names in metadata
+    const nameArr = metadataRsp?.individuals?.value ?? Config.individualNames;
+    Player.setIndividualNames(nameArr);
 
     const trackArr = await window.electronAPI.readTrackingFile(userFilePath);
     if (!trackArr) {
@@ -740,13 +740,10 @@ class Player {
     }
 
     // Set the tracking map
-    // const trackingMap = result.trackingMap;
-    // const firstAvailTrackIds = result.firstAvailTrackIds;
-    // const idMap = result.idMap;
     mainPlayer.setTrackingMap({
       tracks: trackArr, 
-      classNames: metadataRsp?.classNames,
-      classColors: metadataRsp?.classColors,
+      classNames: metadataRsp?.classNames?.value,
+      classColors: metadataRsp?.classColors?.value,
     });
 
     // Get the video file name
@@ -765,7 +762,6 @@ class Player {
     // Show success
     hideProcessIndicator();
     showAlertToast('Tracking file processed!', 'success'); 
-
 
   }
 
@@ -1268,25 +1264,23 @@ class Player {
         }
 
         // Search for metadata file in the user data directory
-        let metadataRsp;  // Object to hold response from metadata file reading function
         const metadataFilePath = await window.electronAPI.findMetadataFile(mainPlayerSrc);
-        if (metadataFilePath) {
-          metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
-          
-          if (metadataRsp) {
+        
+        // Object to hold response from metadata file reading function
+        const metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
 
-            // Look for saved timestamp
-            Player.setCurrentTimeAll(metadataRsp.timestamp?.value);
-            
-            // Look for saved individual names first in metadata, then in config if no names in metadata
-            const nameArr = metadataRsp.individuals?.value ?? Config.individualNames;
-            Player.setIndividualNames(nameArr);
-
-          }
-
-
-
+        try {
+          Player.getMetadata()?.updateFromFileResponse?.(metadataRsp);
+        } catch (err) {
+          console.log('Metadata could not be updated from file response!');
         }
+
+        // Look for saved timestamp
+        Player.setCurrentTimeAll(metadataRsp?.timestamp?.value);
+        
+        // Look for saved individual names first in metadata, then in config if no names in metadata
+        const nameArr = metadataRsp?.individuals?.value ?? Config.individualNames;
+        Player.setIndividualNames(nameArr);
 
         // Search for tracking or identification file
         // let trackingFilePath, tracks, firstAvailTrackIds, idMap
@@ -9021,7 +9015,27 @@ class MetadataEntry {
   static hiddenKeys = ['appVersion', 'timestamp'];
 
   // Types of keys that should not be changeable by the user because they are either not user definable or not relevant for the user.
-  static keysWithImmutableType = ['videoFPS', 'videoName', 'appVersion', 'timestamp'];
+  static keysWithImmutableType = ['videoFPS', 'videoName', 'videoAspectRatio','appVersion', 'timestamp', 'username', 'classIds', 'classNames', 'classColors', 'classRunningCounts'];
+
+  static positiveBinaryValue = 'yes';
+  static negativeBinaryValue = 'no';
+
+  // DOM elements related to metadata entry manipulation
+  static tableEl = document.getElementById(Player.metadataTableId);
+  static helperTextEl = MetadataEntry.tableEl?.querySelector?.('tr.helper-text-row td');
+  static firstRowEl =  MetadataEntry.tableEl?.querySelector?.('tbody')?.rows?.item?.(0);
+  static mainSaveBtnEl = MetadataEntry.firstRowEl?.querySelector?.('button.main-save-btn');
+  static mainDeleteBtnEl = MetadataEntry.firstRowEl?.querySelector?.('button.main-delete-btn');
+  static saveBtnTooltip = bootstrap.Tooltip.getOrCreateInstance(MetadataEntry.mainSaveBtnEl);
+  static keyInputEl = MetadataEntry.firstRowEl?.querySelector?.('input[name="metadata-key"]');
+  static valueInputEl = MetadataEntry.firstRowEl?.querySelector?.('input[name="metadata-value"]');
+  static typeSelectEl = MetadataEntry.firstRowEl?.querySelector?.('select');
+
+  // Default values for the DOM elements related to metadata entry manipulation
+  static defaultHelperText = 'Enter a key to create a new entry or edit an existing one.';
+  static defaultSaveBtnIcon = 'add_circle';
+  static defaultTooltipContent = 'Add new entry';
+
 
   constructor(key, value, type) {
     for (const arg of [key, value, type]) {
@@ -9030,15 +9044,43 @@ class MetadataEntry {
       }
     }
 
-    // Check if type is valid
-    if (!MetadataEntry.validTypes.includes(type)) {
-      throw new Error(`Invalid type for metadata entry: ${type}`);
+    // Check if type and value are valid and compatible with each other. If not, throw an error.
+    const validatedVal = MetadataEntry.validateValueForType(value, type);
+    if (typeof validatedVal === 'undefined') {
+      throw new Error(`Invalid value for metadata entry: ${value}`);
     }
     
-    this._key = key;
-    this._value = value;
+    this.key = key; // Use the setter to trim the key and check if it is valid
     this._type = type;
+    this._value = validatedVal;
 
+  }
+
+  /**
+   * Parses the input value according to the type. If the value is not valid for the type, an error is thrown.
+   * @param {*} value 
+   * @param {String} type 
+   * @returns {*} Parsed value according to the type or an error if the value is not valid for the type
+   * @throws {Error} If the value is not valid for the type
+   */
+  static parseInputByType(value, type) {
+    try {
+      switch (type) {
+        case 'binary':
+          return MetadataEntry.parseBinaryInput(value);
+        case 'numeric':
+          return MetadataEntry.parseNumericInput(value);
+        case 'text':
+          return MetadataEntry.parseTextInput(value);
+        case 'array':
+          return MetadataEntry.parseArrayInput(value);
+        default:
+          throw new Error(`Invalid type for metadata entry: ${type}`);
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   /**
@@ -9055,50 +9097,92 @@ class MetadataEntry {
   }
 
   /**
-   * Parses the input value to a binary value. If the value cannot be parsed to a binary value, an error is thrown.
+   * Parses the input value to a binary value ('yes' or 'no'). If the value cannot be parsed to a binary value, an error is thrown.
    * @param {*} value Input value to be parsed to a binary value
-   * @returns {Boolean | Error} Parsed binary value or an error if the value cannot be parsed to a binary value
+   * @returns {String} Parsed binary value or an error if the value cannot be parsed to a binary value
+   * @throws {Error} If the value is not a valid binary value for a binary metadata entry
    */
   static parseBinaryInput(value) {
-    if (typeof value === 'boolean') {
-      return value;
-    }
 
     if (typeof value === 'undefined' || value === null) {
       throw new Error(`Invalid value for binary metadata entry: ${value}`);
     }
 
+    const positiveVal = MetadataEntry.positiveBinaryValue;
+    const negativeVal = MetadataEntry.negativeBinaryValue;
+
+    if (typeof value === 'boolean') {
+      return value ? positiveVal : negativeVal;
+    }
+
     const parsedValue = value.toString().trim().toLowerCase();
-    if (value === 'yes') {
-      return true;
+    if (![positiveVal, negativeVal].includes(parsedValue)) {
+      throw new Error(`Invalid value for binary metadata entry: ${value}`);
     }
-    if (value === 'no') {
-      return false;
+    return parsedValue;
+
+  }
+
+  /**
+   * Parses the input value to a array value. If the value cannot be parsed to a array value, an error is thrown.
+   * @param {*} value 
+   * @returns {Array} Parsed array value or an error if the value cannot be parsed to an array value  
+   * @throws {Error} If the value is not a valid array for an array metadata entry
+   */
+  static parseArrayInput(value) {
+    if (!Array.isArray(value)) {
+      throw new Error(`Invalid value for array metadata entry: ${value}`);
     }
-    throw new Error(`Invalid value for binary metadata entry: ${value}`);
+    return value;
+  }
+
+  /**
+   * Parses the input value to a text value. If the value cannot be parsed to a text value, an error is thrown. The parsing includes trimming whitespace and replacing inner whitespace with underscores.
+   * @param {*} value 
+   * @returns {String}
+   * @throws {Error} If the value is not a valid string for a text metadata entry
+   */
+  static parseTextInput(value) {
+    if (value === null || typeof value === 'undefined') {
+      throw new Error(`Invalid value for text metadata entry: ${value}`);
+    }
+    
+    if (typeof value !== 'string') {
+      throw new Error(`Invalid value for text metadata entry: ${value}`);
+    }
+
+    const trimmedStr = value.trim();
+    
+    if (trimmedStr === '') {
+      throw new Error(`Invalid value for text metadata entry: ${value}`);
+    }
+
+    return trimmedStr;
+    
+    // return trimmedStr.replace(/\s/g, '_'); // \s matches whitespace, g is for global (all occurrences)
+
   }
 
   /**
    * Validates a value for a given type. Null is considered valid for all types. For binary type, the value must be a boolean. For numeric type, the value must be a finite number. For text type, the value must be a string. For array type, the value must be an array.
    * @param {*} value The value to validate
    * @param {String} type The type to validate against
-   * @returns {Boolean} True if the value is valid for the given type, false otherwise
+   * @returns {Boolean | Number | String | Array | null | undefined} The validated value if it is valid for the type, undefined otherwise
    */
   static validateValueForType(value, type) {
-    // Null is compatible with all types
-    if (value === null) return true; 
 
-    switch (type) {
-      case 'binary':
-        return typeof value === 'boolean';
-      case 'numeric':
-        return typeof value === 'number' && Number.isFinite(value);
-      case 'text':
-        return typeof value === 'string';
-      case 'array':
-        return Array.isArray(value);
-      default:
-        return false;
+    if (typeof type === 'undefined' || !MetadataEntry.validTypes.includes(type)) {
+      return;
+    }
+
+    // Null is compatible with all types
+    if (value === null) return null; 
+
+    try {
+      return MetadataEntry.parseInputByType(value, type);
+    } catch (error) {
+      console.error(error);
+      return;
     }
 
   }
@@ -9116,10 +9200,11 @@ class MetadataEntry {
   }
 
   set key(key) {
-    if (typeof key === 'undefined' || key === '' || key === null) {
+    const trimmedKey = typeof key === 'string' ? key.trim() : key;
+    if (typeof trimmedKey === 'undefined' || trimmedKey === '' || trimmedKey === null) {
       return;
     }
-    this._key = key;
+    this._key = trimmedKey;
     return this._key;
   }
   
@@ -9134,10 +9219,11 @@ class MetadataEntry {
     }
 
     const type = this.type;
-    if (!MetadataEntry.validateValueForType(value, type)) {
+    const validatedValue = MetadataEntry.validateValueForType(value, type);
+    if (typeof validatedValue === 'undefined') {
       throw new Error(`Invalid value type for metadata entry: ${value} is not of type ${type}`); 
     }
-    this._value = value;
+    this._value = validatedValue;
 
   }
 
@@ -9156,13 +9242,92 @@ class MetadataEntry {
     // Check if the value is compatible with the new type 
     // Null is compatible with all types
     const value = this.value;
-    if (! MetadataEntry.validateValueForType(value, type)) {
+    const validatedValue = MetadataEntry.validateValueForType(value, type);
+    if (typeof validatedValue === 'undefined') {
       throw new Error(`Current value ${value} is not compatible with the new type ${type}`);    
     }
     this._type = type;
   }
 
-  
+
+  /**
+   * Deletes the DOM elements linked to a metadata entry with the given key. This includes datalist options for autocompletion and table rows for displaying metadata entries.
+   * @throws {Error} If the key is invalid or if the DOM elements could not be found.
+   */
+  static deleteDomEls(key) {
+    if (key === null || typeof key === 'undefined') {
+      throw new Error(`Invalid key for deleting metadata entry DOM elements: ${key}`);
+    };
+
+    // Get the datalist element
+    const datalistEl = document.getElementById('metadata-key-datalist');
+    if (!datalistEl) {
+      throw new Error(`No datalist element with id "metadata-key-datalist" could be found in the DOM!`);  
+    };
+
+    const metadataTable = MetadataEntry.tableEl;
+    if (!metadataTable) {
+      throw new Error(`No table element with id ${Player.metadataTableId} could be found in the DOM!`);
+    } 
+
+    const helperTextEl = MetadataEntry.helperTextEl;
+    if (!helperTextEl) {
+      throw new Error(`No helper text element could be found in the DOM!`);
+    }
+
+    const mainSaveBtn = MetadataEntry.mainSaveBtnEl;
+    if (!mainSaveBtn) { 
+      throw new Error(`No main save button element could be found in the DOM!`);
+    }
+
+    const saveBtnTooltip = MetadataEntry.saveBtnTooltip;
+    if (!saveBtnTooltip) {
+      throw new Error(`No save button tooltip could be found in the DOM!`);
+    }
+
+    const mainDeleteBtn = MetadataEntry.mainDeleteBtnEl;
+    if (!mainDeleteBtn) {
+      throw new Error(`No delete save button element could be found in the DOM!`);
+    }
+
+    const keyInputEl = MetadataEntry.keyInputEl;
+    const valueInputEl = MetadataEntry.valueInputEl;
+    const typeSelectEl = MetadataEntry.typeSelectEl;
+    if (!keyInputEl || !valueInputEl || !typeSelectEl) {
+      throw new Error(`No input element for metadata entry manipulation could be found in the DOM!`);
+    }
+    
+    // Delete the option element linked to the key of the metadata entry
+    const optionEl = datalistEl.querySelector(`option[value="${key}"]`);
+    if (!optionEl) {
+      throw new Error(`No option element with value "${key}" could be found in the datalist!`);
+    }
+    optionEl.remove();
+
+    // Get the table element
+    const tableBody = metadataTable?.querySelector('tbody');
+    if (!tableBody) {
+      throw new Error(`No table body element could be found in the DOM!`);
+    }
+
+    // Delete the table row linked to the key of the metadata entry
+    const rowEl = tableBody.querySelector(`tr[data-key="${key}"]`);
+    if (!rowEl) {
+      throw new Error(`No table row element with data-key "${key}" could be found in the table body!`);
+    }
+
+    rowEl.remove();
+
+    helperTextEl.textContent = MetadataEntry.defaultHelperText;
+    saveBtnTooltip?.setContent?.({'.tooltip-inner': MetadataEntry.defaultTooltipContent });
+    
+    // Reset the input fields for the next entry to be added by the user
+    keyInputEl.value = '';
+    valueInputEl.value = '';
+    typeSelectEl.value = 'no-selection';
+
+
+  }
 
   /**
    * Updates the DOM elements linked to a metadata entry with the given key, value and type. This includes datalist options for autocompletion and table rows for displaying metadata entries. If the DOM elements do not exist yet for the given key, they will be created.
@@ -9180,18 +9345,35 @@ class MetadataEntry {
     // Exclude hidden keys from UI
     if (MetadataEntry.hiddenKeys.includes(key)) return;
     
-    // Get the datalist element
-    const datalistEl = document.getElementById('metadata-key-datalist');
-    if (!datalistEl) return;
+    // Get the key datalist element
+    const keyDatalist = document.getElementById('metadata-key-datalist');
+    if (!keyDatalist) return;
 
     // Create an option element if it does not exist yet for the given key and set its value
-    let optionEl = datalistEl.querySelector(`option[value="${key}"]`);
-    if (!optionEl) {
-      optionEl = document.createElement('option');
-      datalistEl.append(optionEl);
+    let keyOptionEl = keyDatalist.querySelector(`option[value="${key}"]`);
+    if (!keyOptionEl) {
+      keyOptionEl = document.createElement('option');
+      keyDatalist.append(keyOptionEl);
     }
-    optionEl.value = key;
-    optionEl.text = `${value} | ${type}`;
+    keyOptionEl.value = key;
+    keyOptionEl.text = `${value} | ${type}`;
+
+    // Get the value datalist element
+    const valueDatalist = document.getElementById('metadata-value-datalist');
+    if (!valueDatalist) return;
+
+    // Create an option element if it does not exist yet for the given value and set its value
+    // Skip the null and undefined values, because they are not valid inputs for the user and should not be shown in the datalist options
+    if (value !== null && typeof value !== 'undefined') {
+      let valueOptionEl = valueDatalist.querySelector(`option[value="${value}"]`);
+      if (!valueOptionEl) {
+        valueOptionEl = document.createElement('option');
+        valueDatalist.append(valueOptionEl);
+      }
+      valueOptionEl.value = value;
+      valueOptionEl.text = type;
+      valueOptionEl.dataset.type = type;
+    };
 
     // Get the table elements
     const tableEl = document.getElementById(Player.metadataTableId);
@@ -9271,6 +9453,9 @@ class MetadataEntry {
       keyInputEl.setAttribute('list', 'metadata-key-datalist');
       valueInputEl.setAttribute('list', 'metadata-value-datalist');
 
+      // Disable key input element to prevent changes to unique identifiers
+      keyInputEl.disabled = true;
+
       // Add select element into type cell for valid types options
       const typeSelectEl = document.createElement('select');
       typeSelectEl.classList.add('form-select', 'form-select-sm');
@@ -9336,13 +9521,14 @@ class MetadataEntry {
    */
   static handleKeyAutocomplete() {
     // Get the metadata table element
-    const metadataTable = document.getElementById(Player.metadataTableId);
+    const metadataTable = MetadataEntry.tableEl;
+    
     if (!metadataTable) {
       throw new Error(`No table element with id ${Player.metadataTableId} could be found in the DOM!`);
     };
 
-     // Get the first row of the table which is used for adding new metadata entries by the user.
-    const firstRowEl = metadataTable.rows.item(1);
+    // Get the first row of the table which is used for adding new metadata entries by the user.
+    const firstRowEl = MetadataEntry.firstRowEl;
     if (!firstRowEl) {
       throw new Error(`No row element for the metadata table could be found in the DOM!`);
     };
@@ -9355,10 +9541,37 @@ class MetadataEntry {
       throw new Error('Input or select element for adding new metadata entry could not be found in the DOM!');
     }
 
-    // Get the user input
-    const key = keyInputEl.value;
-    if (!key || key === '') return;
+    // Get the element for displaying helper text under the key input element
+    const helperTextEl = MetadataEntry.helperTextEl
+    if (!helperTextEl) {
+      throw new Error('Helper text element for key input could not be found in the DOM!');
+    }
 
+    // Get the save button element for adding new metadata entry
+    const saveBtnEl = MetadataEntry.mainSaveBtnEl;
+    if (!saveBtnEl) {
+      throw new Error('Save button element for adding new metadata entry could not be found in the DOM!');
+    }
+
+    const saveBtnTooltip = bootstrap.Tooltip.getOrCreateInstance(saveBtnEl);;
+    if (!saveBtnTooltip) {
+      throw new Error('Tooltip instance for save button could not be found!');
+    }
+
+    const defaultHelperText = MetadataEntry.defaultHelperText;
+    const defaultSaveBtnIcon = MetadataEntry.defaultSaveBtnIcon;
+    const defaultTooltipContent = MetadataEntry.defaultTooltipContent;
+    
+    // Get the user input
+    const key = keyInputEl.value?.trim?.();
+    if (!key || key === '') {
+      // Reset helper text, button icon and tooltip content to default values when there is no user input
+      helperTextEl.textContent = defaultHelperText;
+      saveBtnEl.textContent = defaultSaveBtnIcon;
+      saveBtnTooltip?.setContent?.({'.tooltip-inner': defaultTooltipContent });
+      return;
+    }
+      
     // Make sure the player has a Metadata instance
     const metadata = Player.getMetadata();
     if (!(metadata instanceof Metadata)) {
@@ -9367,12 +9580,12 @@ class MetadataEntry {
 
     // If the key already exists
     const existingEntry = metadata.get(key);
-    if (existingEntry instanceof MetadataEntry) {
-      
-      const existingValue = existingEntry?.value ?? null;
-      const existingType = existingEntry?.type ?? null;
+    const isExistingEntry = existingEntry instanceof MetadataEntry;
+    if (isExistingEntry) {
       
       // If the key has a previously recorded value and type
+      const existingValue = existingEntry?.value ?? null;
+      const existingType = existingEntry?.type ?? null;
       if (existingValue !== null && existingType !== null) {
       
         // Fill those values in the input fields as default values
@@ -9380,21 +9593,22 @@ class MetadataEntry {
         valueInputEl.value = existingValue;
         typeSelectEl.value = existingType;
         
-        // Show a warning to the user that the existing value and type will be overwritten if they continue with saving the new entry
-        showPopover({
-          domEl: keyInputEl,
-          title: 'Existing Entry',
-          content: `An entry with key '${key}' already exists. Saving will overwrite the existing values.`,
-          type: 'info',
-          placement: 'left',
-          hideTimeout: 3000
-        });
-
       }
       
     }
+    
+    // Show a warning to the user that the existing value and type will be overwritten if they continue with saving the new entry
+    const infoText = isExistingEntry ? `An entry with key <span class="badge text-bg-warning">${key}</span> already exists. Saving will overwrite the existing values.` : `A new entry with key <span class="badge text-bg-success">${key}</span> will be created.`;
+    
+    helperTextEl.innerHTML = infoText;
 
-    // If it is a new key, proceed with saving the new entry as there is no risk of overwriting
+    // Change the button icon and tooltip content
+    const buttonIcon = isExistingEntry ? 'save_as' : defaultSaveBtnIcon;
+    saveBtnEl.textContent = buttonIcon;
+
+    // Change the tooltip content
+    const tooltipContent = isExistingEntry ? 'Edit entry' : defaultTooltipContent;
+    saveBtnTooltip?.setContent?.({'.tooltip-inner': tooltipContent });
 
   }
 
@@ -9404,21 +9618,21 @@ class MetadataEntry {
    */
   static handleEditByUser() { 
 
-    const metadataTable = document.getElementById(Player.metadataTableId);
+    const metadataTable = MetadataEntry.tableEl;
     if (!metadataTable) {
       throw new Error(`No table element with id ${Player.metadataTableId} could be found in the DOM!`);
     };
     
     // Get the first row of the table which is used for adding new metadata entries by the user.
-    const firstRowEl = metadataTable.rows.item(1);
+    const firstRowEl = MetadataEntry.firstRowEl;
     if (!firstRowEl) {
       throw new Error(`No row element with id ${Player.metadataTableId} could be found in the DOM!`);
     };
 
     // Get the input and select elements for the key, value and type of the new metadata entry to be added by the user.
-    const keyInputEl = firstRowEl.querySelector('input[name="metadata-key"]');
-    const valueInputEl = firstRowEl.querySelector('input[name="metadata-value"]');
-    const typeSelectEl = firstRowEl.querySelector('select');
+    const keyInputEl = MetadataEntry.keyInputEl;
+    const valueInputEl = MetadataEntry.valueInputEl;
+    const typeSelectEl = MetadataEntry.typeSelectEl;
     if (!keyInputEl || !valueInputEl || !typeSelectEl) {
       throw new Error('Input or select element for adding new metadata entry could not be found in the DOM!');
     }
@@ -9464,28 +9678,55 @@ class MetadataEntry {
 
     const isBinary = type === 'binary';
     const isNumeric = type === 'numeric';
+    const isText = type === 'text';
     
+    const positiveBinaryVal = MetadataEntry.positiveBinaryValue;
+    const negativeBinaryVal = MetadataEntry.negativeBinaryValue;
+
     // Check if the value entered by the user is valid for the selected type
-    if (isBinary && !['yes', 'no'].includes(value.toLowerCase())) {
-      showPopover({
-        domEl: valueInputEl,
-        title: 'Invalid Value',
-        content: 'Please enter either <span class="badge text-bg-dark">yes</span> or <span class="badge text-bg-dark">no</span> for the binary type!',
-        type: 'error',
-        placement: 'bottom'
-      });
-      return;
+    if (isBinary) {
+      try {
+        MetadataEntry.parseBinaryInput(value);
+      } catch (error) {
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Invalid Binary Value',
+          content: `Please enter either <span class="badge text-bg-dark">${positiveBinaryVal}</span> or <span class="badge text-bg-dark">${negativeBinaryVal}</span> for the binary type!`,
+          type: 'error',
+          placement: 'bottom'
+        });
+        return;
+      }
     }
 
-    if (isNumeric && Number.isNaN(parseFloat(value))) {
-      showPopover({
-        domEl: valueInputEl,
-        title: 'Invalid Value',
-        content: 'Please enter a valid number for the numeric type!',
-        type: 'error',
-        placement: 'bottom'
-      });
-      return;
+    if (isNumeric) {
+      try {
+        MetadataEntry.parseNumericInput(value);
+      } catch (error) {
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Invalid Numeric Value',
+          content: 'Please enter a valid number for the numeric type!',
+          type: 'error',
+          placement: 'bottom'
+        });
+        return;
+      }
+    }
+
+    if (isText) {
+      try {
+        MetadataEntry.parseTextInput(value);
+      } catch (error) {
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Invalid Text Value',
+          content: 'Please enter a valid text for the text type! The text should not be empty and should not consist of only whitespace.',
+          type: 'error',
+          placement: 'bottom'
+        });
+        return;
+      }
     }
 
     // Make sure the player has a Metadata instance
@@ -9526,37 +9767,133 @@ class MetadataEntry {
         showPopover({
           domEl: keyInputEl,
           title: 'Failed to Create Entry',
-          content: `The new entry with key <span class="badge text-bg-dark">${key}</span> could not be created with the provided value <span class="badge text-bg-dark">${value}</span> and type <span class="badge text-bg-dark">${type}</span>. Please try again.`,
+          content: `Entry with key <span class="badge text-bg-dark">${key}</span> could not be created with the provided value <span class="badge text-bg-dark">${value}</span> and type <span class="badge text-bg-dark">${type}</span>. Please try again.`,
           type: 'error',
           placement: 'left'
         });
       }
-
       return;
-
     }
       
     // If the key already exists, update the existing MetadataEntry instance with the new value and type
     if (existingEntry instanceof MetadataEntry) {
-      
       try {
         existingEntry.value = value;
         existingEntry.type = type;
         existingEntry.updateDomEls();
-
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Entry Updated',
+          content: `Entry with key <span class="badge text-bg-primary">${key}</span> has been updated to <span class="badge text-bg-secondary">${value}</span>–<span class="badge text-bg-success">${type}</span>`,
+          type: 'success',
+          placement: 'bottom'
+        }); 
       } catch (error) {
         showPopover({
           domEl: keyInputEl,
           title: 'Failed to Update Entry',
-          content: `The existing entry with key '${key}' could not be updated with the new value and type. Please try again.`,
+          content: `Existing entry with key <span class="badge text-bg-dark">${key}</span> could not be updated. ${error.message}. Please try again.`,
           type: 'error',
           placement: 'left'
         });
-        return;
       }
-      
+      return;
     }
 
+  }
+
+  /**
+   * Handles the deletion of a metadata entry by the user.
+   * @param {*} event 
+   * @returns {undefined} If the deletion is successful or if there is an error that can be handled with user feedback (e.g. entry with the given key does not exist, player does not have a Metadata instance, key of the entry to be deleted cannot be retrieved from the DOM), undefined is returned after showing a popover with feedback to the user.
+   * @throws {Error} If the player does not have a Metadata instance or if the key input element for the metadata entry to be deleted cannot be found in the DOM, or if there is an error while deleting the metadata entry that cannot be handled with user feedback.
+   */
+  static handleDeletionByUser(event) { 
+    // Get the key of the metadata entry to be deleted 
+    const rowEl = event.target?.parentElement?.parentElement;
+    const keyInputEl = rowEl?.querySelector?.('input[name="metadata-key"]');
+    if (!keyInputEl) {
+      throw new Error('Key input element for the metadata entry to be deleted could not be found in the DOM!');
+    }
+
+    // Get the metadata table element
+    // const metadataTable = document.getElementById(Player.metadataTableId);
+    if (!MetadataEntry.tableEl) {
+      throw new Error(`No table element with id ${Player.metadataTableId} could be found in the DOM!`);
+    };
+
+    // Get the element for displaying helper text under the key input element
+    // const helperTextEl = metadataTable.querySelector?.('tr.helper-text-row td');
+    if (!MetadataEntry.helperTextEl) {
+      throw new Error('Helper text element for key input could not be found in the DOM!');
+    }
+
+    // Get the first row of the table which is used for adding new metadata entries by the user.
+    // const firstRowEl = metadataTable.querySelector('tbody')?.rows?.item?.(0);
+    // if (!MetadataEntry.firstRowEl) {
+    //   throw new Error(`No row element for the metadata table could be found in the DOM!`);
+    // };
+
+    // Get the save button element for adding new metadata entry
+    // const saveBtnEl = firstRowEl.querySelector('button.main-save-btn');
+    if (!MetadataEntry.mainSaveBtnEl) {
+      throw new Error('Save button element for adding new metadata entry could not be found in the DOM!');
+    }
+    if (!MetadataEntry.saveBtnTooltip) {
+      throw new Error('Tooltip instance for save button could not be found!');
+    }
+
+    const key = keyInputEl?.value ?? null;
+    if (key === null || key === '') {
+      showPopover({
+        domEl: keyInputEl,
+        title: 'Missing Key',
+        content: 'Please enter a valid key for the metadata entry you want to delete!',
+        type: 'error',
+        placement: 'left',
+      });
+      return;
+    }
+
+    // Make sure the player has a Metadata instance
+    const metadata = Player.getMetadata();
+    if (!(metadata instanceof Metadata)) {
+      throw new Error('Metadata instance could not be found on the player!');
+    }
+
+    // Check if an entry with the given key exists in the metadata
+    if (!metadata.has(key)) {
+      showPopover({
+        domEl: keyInputEl,
+        title: 'Entry Not Found',
+        content: `No entry with key <span class="badge text-bg-dark">${key}</span> could be found! Please enter a valid key for the metadata entry you want to delete!`,
+        type: 'error',
+        placement: 'left',
+      });
+      return;
+    }
+
+    // Try to delete the metadata entry with the given key from the Metadata instance of the player
+    try {
+      metadata.delete(key);
+      MetadataEntry.deleteDomEls(key);
+
+      showPopover({
+        domEl: keyInputEl,
+        title: 'Entry Deleted',
+        content: `The entry with key <span class="badge text-bg-dark">${key}</span> has been deleted successfully.`,
+        type: 'success',
+        placement: 'left'
+      });
+    } catch (error) {
+      showPopover({
+        domEl: keyInputEl,
+        title: 'Failed to Delete Entry',
+        content: `The entry with key <span class="badge text-bg-dark">${key}</span> could not be deleted. Please try again.`,
+        type: 'error',
+        placement: 'left'
+      });
+    }
   }
 
 }
@@ -9585,12 +9922,48 @@ class Metadata {
     
   }
 
+  /**
+   * Updates the metadata entries based on the given file response object. The file response object is expected to have a specific structure where each key corresponds to a metadata entry key and its value is an object containing the key,value and type of the metadata entry.
+   * @param {Object} fileResponse 
+   */
+  updateFromFileResponse(fileResponse) {
+    if (typeof fileResponse === 'undefined' || fileResponse === null) {
+      throw new Error(`Invalid file response for updating metadata: ${fileResponse}`);
+    }
+    Object.entries(fileResponse).forEach(([key, { value, type }]) => {
+      try {
+        this.addOrUpdate(key, value, type);
+      } catch (error) {
+        console.error(`Error occurred while updating metadata for key: ${key}`, error);
+      }
+    });
+  }
+
   has(key) {
     return this.entries.has(key);
   }
 
   get(key) {
     return this.entries.get(key);
+  }
+
+  /**
+   * Adds a new metadata entry or updates an existing one. If an entry with the given key already exists, its value and type will be updated. If no entry with the given key exists, a new entry will be created and added to the Metadata instance. The type parameter is optional for updating existing entries, if not provided, the type of the existing entry will remain unchanged. However, when adding a new entry, the type parameter is required.
+   * @param {*} key 
+   * @param {*} value 
+   * @param {String | undefined} type 
+   * @throws {Error} If the type parameter is not provided when adding a new entry or if there is an error while adding or updating the metadata entry
+   */
+  addOrUpdate(key, value, type) {
+    try {
+      if (this.entries.has(key)) {
+        this.update(key, value, type);
+      } else {
+        this.add(new MetadataEntry(key, value, type));
+      }
+    } catch (error) {
+      throw new Error(`Failed to add or update metadata entry for key: ${key}. Error: ${error}.`);
+    }
   }
 
   /**
@@ -9620,6 +9993,22 @@ class Metadata {
       throw new Error(`Failed to add metadata entry for key: ${key}`);
     }
 
+  }
+
+  /**
+   * Deletes the metadata entry with the given key from the Metadata instance. If no entry with the given key exists, an error is thrown.
+   * @param {*} key 
+   * @throws {Error} If there is no existing metadata entry with the given key or if there is an error while deleting the metadata entry
+   */
+  delete(key) {
+    if (typeof key === 'undefined' || key === '' || key === null) {
+      throw new Error(`Invalid key for deleting metadata entry: ${key}`);
+    }
+   
+    const isDeleted = this.entries.delete(key);
+    if (!isDeleted) {
+      throw new Error(`No metadata entry found for key: ${key}`);
+    }
   }
 
   get timestamp() {
@@ -9670,9 +10059,10 @@ class Metadata {
    * Updates the value of an existing metadata entry.
    * @param {*} key 
    * @param {*} value 
+   * @param {String | undefined} type Optional parameter to update the type of the metadata entry if needed. If not provided, the type of the metadata entry will remain unchanged.
    * @throws {Error} If there is no existing metadata entry with the given key or if the new value is not valid for the type of the metadata entry 
    */
-  update(key, value) {
+  update(key, value, type) {
     if (!this.has(key)) {
       throw new Error(`No metadata entry found for key: ${key}`);
     }
@@ -9680,6 +10070,9 @@ class Metadata {
     try {
       const metadataEntry = this.entries.get(key);
       metadataEntry.value = value;
+      if (typeof type !== 'undefined') {
+        metadataEntry.type = type;
+      }
       metadataEntry.updateDomEls();
     } catch (error) {
       showAlertToast(
@@ -9760,21 +10153,9 @@ class Metadata {
     this.updateTimestamp();
 
     // Convert entries from a Map to an Object and finally to a JSON string, while converting MetadataEntry instances to plain objects using the toObject method for easier serialization
-    const jsonString = JSON.stringify(Object.fromEntries(this.entries), (key, value) => {
-      if (value instanceof MetadataEntry) {
-        return value.toObject?.();
-      }
-      return value;
-    });
-    
-    // // Convert entries from a Map to an Object and finally to a JSON string
-    // let jsonString = JSON.stringify(Object.fromEntries(this.entries), (key, value) => {
-    //   if (value === undefined) {
-    //     return null;
-    //   }
-    //   return value;
-    // });
-
+    const entriesObj = {};
+    this.entries.forEach((entry, key) => entriesObj[key] = entry?.toObject?.());
+    const jsonString = JSON.stringify(entriesObj);
     const response = await window.electronAPI.saveMetadata(jsonString, this.videoName);
     return response;
 

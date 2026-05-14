@@ -2775,8 +2775,8 @@ app.whenReady().then(() => {
     const response = handleFindMetadataFile(videoFilePath, dirPath);
     return response;
   })
-  ipcMain.handle('readMetadataFile', (e, filePath) => {
-    const response = handleReadMetadataFile(filePath);
+  ipcMain.handle('readMetadataFile', async (e, filePath) => {
+    const response = await handleReadMetadataFile(filePath);
     return response;
   })
   ipcMain.handle('saveMetadata', (e, metadata, fileName) => {

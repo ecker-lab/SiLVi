@@ -1131,11 +1131,6 @@ function saveTableToFile(fileDelimiter) {
 }
 
 
-
-
-
-
-
 // Handle opening a new main video
 const openMainVideoBtn = document.getElementById('open-main-video-btn'); 
 if (openMainVideoBtn) {
@@ -1936,9 +1931,15 @@ if (metadataTable) {
   }
 
   // Handle adding/editing metadata entry via the main input elements in the metadata table
-  const addMetadataEntryBtn = metadataTable.querySelector('button[data-bs-title="Save"]');
+  const addMetadataEntryBtn = metadataTable.querySelector('button.main-save-btn');
   if (addMetadataEntryBtn) {
     addMetadataEntryBtn.addEventListener('click',  MetadataEntry.handleEditByUser);
+  }
+
+  // Handle deleting a metadata entry via the main delete button in the metadata table
+  const deleteMetadataEntryBtn = metadataTable.querySelector('button.main-delete-btn');
+  if (deleteMetadataEntryBtn) {
+    deleteMetadataEntryBtn.addEventListener('click', MetadataEntry.handleDeletionByUser);
   }
 
   // Handle autocomplete for keys when user is typing in the key input element

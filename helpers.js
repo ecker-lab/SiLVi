@@ -472,12 +472,12 @@ async function loadSecondaryVideos(videoSrcArr) {
     
     if (rowColsNumber === 'row-cols-1') {
       buttonIcon.textContent = 'grid_view'; // Change the icon to list view
-      tooltip.setContent({ '.tooltip-inner': 'Grid view' }); // Change the tooltip
+      tooltip?.setContent?.({ '.tooltip-inner': 'Grid view' }); // Change the tooltip
       buttonIcon.dataset.viewType = 'grid'; // Update dataset
 
     } else {
       buttonIcon.textContent = 'view_list' // Change the icon to list view
-      tooltip.setContent({ '.tooltip-inner': 'List view' }); // Change the tooltip
+      tooltip?.setContent?.({ '.tooltip-inner': 'List view' }); // Change the tooltip
       buttonIcon.dataset.viewType = 'list' // Update dataset
     }
 

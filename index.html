@@ -648,10 +648,10 @@
                     </button>
                     <span class="fw-lighter last-edit-time" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Last edit"></span>
                   </div>
-                  <div class="table-responsive">
+                  <div class="table-responsive text-start">
                     <table id="metadata-table" class="table table-sm table-striped table-hover align-middle ">
                       <thead>
-                        <tr class="text-start always-visible">
+                        <tr class="always-visible">
                           <th id="metadata-key" scope="col">Key</th>
                           <th id="metadata-value" scope="col">Value</th>
                           <th id="metadata-type" scope="col" class="cursor-help" data-bs-toggle="tooltip" data-bs-custom-class="long-help-tooltip" data-bs-html="true" data-bs-title="<p><b>Binary data:</b><br>Should have only two possible values<br>E.g., <em>Key</em>: tool reuse observed - <em>Value</em>: Yes</p><p><b>Text data:</b><br>Can be any string of characters<br>E.g., <em>Key</em>: Tool material - <em>Value</em>: grass</p><p><b>Numeric data:</b><br>Should be a number<br>E.g., <em>Key</em>: Temperature - <em>Value</em>: 25.5</p>">Type</th>
@@ -660,24 +660,29 @@
                       <tbody>
                         <tr class="table-font always-visible">
                           <td headers="metadata-key">
-                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-key-datalist" placeholder="Type to add/edit description" name="metadata-key"></div>
+                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-key-datalist" placeholder="Type to add/edit key" name="metadata-key"></div>
                           </td>
                           <td headers="metadata-value">
-                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-value-datalist" name="metadata-value"></div>
+                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-value-datalist" name="metadata-value" placeholder="Type to add/edit value"></div>
                           </td>
                           <td headers="metadata-type">
                             <select class="form-select form-select-sm">
                               <option value="no-selection" selected>Select a type</option>
-                              <option value="binary" >Binary</option>
+                              <option value="binary">Binary</option>
                               <option value="text">Text</option>
                               <option value="numeric">Numeric</option>
                             </select>
                           </td>
                           <td>
-                            <button class="btn btn-sm material-symbols-rounded table-btn-icon" data-bs-toggle="tooltip" data-bs-title="Save" data-bs-placement="top">save</button>
+                            <button class="btn btn-sm material-symbols-rounded table-btn-icon main-save-btn" data-bs-toggle="tooltip" data-bs-title="Add new entry" data-bs-placement="top">add_circle</button>
                           </td>
                           <td>
-                            <button class="btn btn-sm material-symbols-rounded table-btn-icon" data-bs-toggle="tooltip" data-bs-title="Delete" data-bs-placement="top">delete_forever</button>
+                            <button class="btn btn-sm material-symbols-rounded table-btn-icon main-delete-btn" data-bs-toggle="tooltip" data-bs-title="Delete" data-bs-placement="top">delete_forever</button>
+                          </td>
+                        </tr>
+                        <tr class="always-visible helper-text-row">
+                          <td colspan="5" class="text-body-secondary align-start small">
+                            Enter a key to create a new entry or edit an existing one.
                           </td>
                         </tr>
                         <tr class="always-visible">
@@ -687,10 +692,12 @@
                             </div>
                           </td>
                         </tr>
-                        <div></div>
                       </tbody>
                       <datalist id="metadata-key-datalist"></datalist>
-                      <datalist id="metadata-value-datalist"></datalist>
+                      <datalist id="metadata-value-datalist">
+                        <option value="yes" data-type="binary"> binary</option>
+                        <option value="no" data-type="binary">binary</option>
+                      </datalist>
                       <datalist id="metadata-type-datalist"></datalist>
                     </table>
                   </div>

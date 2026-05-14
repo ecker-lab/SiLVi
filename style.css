@@ -57,6 +57,26 @@ span.filled {
   'opsz' 24
 }
 
+.thin {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 300,
+  'GRAD' -25,
+}
+
+.thinner {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 200,
+  'GRAD' -25,
+}
+
+.thinnest {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 100,
+  'GRAD' -25,
+}
 
 /* Rules for using icons as black on a light background. */
 .dark {
@@ -101,7 +121,6 @@ span.filled {
   'wght' 400,
   'GRAD' 0
 }
-
 
 /* Playback button styling */
 .btn-playback {
@@ -257,6 +276,7 @@ span.filled {
   'FILL' 0,
   'wght' 300,
   'GRAD' -25
+  
 }
 
 
