@@ -137,11 +137,14 @@ const trackingColNames = [
   'classId', 'nameOrder', 'confidenceId'
 ];
 
+// Define the metadata file columns/header row
+const metadataHeaderRow = ['key', 'value', 'type'];
+
 // Define the value for variables which do not have defined values
 const naStr = 'NA';
 
 // Define CSV delimiter
-const csvDelimiter = ',';
+const csvDelimiter = ';';
 
 // Numbers after decimal point for time-related values in exported files
 const precisionForSeconds = 4;
@@ -451,7 +454,7 @@ function handleReadTrackingFile(filePath) {
 
         // Split the line into columns
         const delimiter = line.includes(';') ? ';' : ',';
-        // console.log('Delimiter:', delimiter);
+
         const lineArr = line.split(new RegExp('\\s*' + delimiter + '\\s*'));
         // console.log('Splitted line regex', new RegExp('\\s*' + delimiter + '\\s*'));
 
@@ -1129,9 +1132,6 @@ async function handleExportBehaviors(observations, fileName, videoFPS, username,
   
   }
 
-  // Return nothing if dialog is canceled or no valid path was selected
-  // return;
-
 
 }
 
@@ -1226,6 +1226,114 @@ function handleWriteNotesToFile(text, fileName, username, filePath) {
 
   }
 
+}
+
+/**
+ * 
+ * @param {Object[]} metadata Array of Objects with "key, value, type" properties.
+ * @param {String | undefined} fileName 
+ * @param {import('node:fs').PathLike | undefined} filePath 
+ * @returns {import('node:fs').PathLike | undefined} File path of the written metadata file or undefined if the operation has failed
+ */
+function handleWriteMetadataToCSV(metadataObjArr, fileName, filePath) {
+  if (!Array.isArray(metadataObjArr) || metadataObjArr.length === 0) {
+    console.log('No metadata to write!');
+    return;
+  }
+
+  // Get the unique keys from the metadata objects to create the header row
+  const metadataHeaderRow = Array.from(new Set(metadataObjArr.flatMap(obj => Object.keys(obj))));
+
+  // Determine file name of the output
+  const fileOutName = fileName ? fileName : 'unknown';
+
+  // Determine the file name with extension
+  const fileNameWithExt = `${fileOutName}_metadata.csv`;
+
+  // Determine the full file path for the metadata file
+  // Write either to the user data directory (invisible to user) or some other directory chosen by the user
+  const pathInUserDataDir = path.join(appDataDir, fileNameWithExt);
+  const filePathToWrite = filePath ? filePath: pathInUserDataDir;
+
+  let writeStream = fs.createWriteStream(filePathToWrite);
+  if (!writeStream) {
+    console.log('Failed to find the file path for the metadata!');
+    return;
+  }
+
+  try {
+    const colHeaderRow = metadataHeaderRow.join(csvDelimiter);
+    writeStream.write(`${colHeaderRow}\n`);
+
+    console.log('metadataObjArr', metadataObjArr);
+    
+    metadataObjArr.forEach(metadataObj => {
+      const rowArr = metadataHeaderRow.map(header => metadataObj[header] ?? naStr);
+
+      writeStream.write(`${rowArr.join(csvDelimiter)}\n`);
+  
+    });
+
+    // Check if writing to stream is finished
+    writeStream.on('finish', () => {
+      console.log(`Finished writing to ${filePathToWrite}`);
+    });
+
+    // Handle error with the stream
+    writeStream.on('error', (err) => {
+      console.error('Cleaning up:', err);
+      writeStream.destroy();
+      return;
+    })
+
+    // Close the streams
+    writeStream.end();
+
+    // Return the file path 
+    return filePathToWrite;
+
+  } catch (err) {
+    console.error(err);
+    return;
+  }
+
+}
+
+
+/**
+ * Exports the metadata to a file chosen by the user via dialog menu
+ * @param {Object[]} metadataObjArr Array of Objects with "key, value, type" properties.
+ * @param {String} fileName 
+ * @returns {Object} Return object consisting of the file path and canceled status
+ * @returns {import('node:fs').PathLike | undefined} Path of the exported file or undefined if the operation has failed
+ * @returns {boolean} True if the operation is canceled by the user, False otherwise
+ */
+async function handleExportMetadataToCSV(metadataObjArr, fileName) {
+
+  const result = await dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
+    title: 'Export Metadata',
+    defaultPath: `${fileName}_metadata.csv`,
+    filters: [{ name: 'CSV Files', extensions: ['csv'] }]
+  });
+
+  // Handle cancellation
+  if (result.canceled) {
+    return { canceled: true }
+  }
+
+  // Check if a valid file path was chosen
+  if (!result.canceled && result.filePath) {
+    
+    // Get the selected file path
+    const filePath = result.filePath;
+
+    // Pass the arguments to the writer function
+    const confirmedPath = handleWriteMetadataToCSV(metadataObjArr, fileName, filePath);
+
+    return { filePath: confirmedPath, canceled: false };
+
+  }
+  
 }
 
 /**
@@ -1877,12 +1985,12 @@ function handleWriteBehaviorsToFile(observations, fileName, videoFPS, username, 
   const pathInUserDataDir = path.join(appDataDir, fileNameWithExt);
   const filePathToWrite = filePath ? filePath: pathInUserDataDir;
 
-  // Write to the ethogram file in the user data directory 
+  // Write to the behaviors file in the user data directory 
   // Directory is hidden from user, used as a backup against accidental deletions 
   let writeStream = fs.createWriteStream(filePathToWrite);
 
   if (!writeStream) {
-    console.log('Failed to find the path for the ethogram file!');
+    console.log('Failed to find the path for the behaviors file!');
     return;
   }
 
@@ -1921,7 +2029,6 @@ function handleWriteBehaviorsToFile(observations, fileName, videoFPS, username, 
     // Check if writing to stream is finished
     writeStream.on('finish', () => {
       console.log(`Finished writing to ${filePathToWrite}`);
-
     });
 
     // Handle error with the stream
@@ -2804,7 +2911,11 @@ app.whenReady().then(() => {
     const response = await handleAnalyzeVideoFile(videoFilePath);
     return response;
   })
-  
+  ipcMain.handle('dialog:exportMetadataToCSV', async (e, metadataObjArr, fileName) => {
+    const response = await handleExportMetadataToCSV(metadataObjArr, fileName);
+    return response;
+  })
+
   createWindow();
 
   app.on('activate', function() {

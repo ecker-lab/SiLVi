@@ -797,46 +797,9 @@ if (notesTextAreaEl) {
 
     }
 
-          
-
   });
 
-  // // Disable/enable labeling when notes DOM element is focused/blurred
-  // notesTextAreaEl.addEventListener('focus', () => {
-  //   Player.setTypingStatus(true);
-  // });
-
-  // notesTextAreaEl.addEventListener('blur', () => {
-  //   Player.setTypingStatus(false);
-  // });
-
-
-
 }
-
-
-
-
-
-// Handle opening interaction labeling file
-// const openInteractionFileBtn = document.getElementById('open-interaction-file-btn');
-// if (openInteractionFileBtn) {
-//   openInteractionFileBtn.addEventListener('click', async () => {
-//     const  = await window.electronAPI.openSingleFile('interactions');
-//     if () {
-//       const observations = await window.electronAPI.readInteractionFile();
-//       if (observations) {
-//         observations.forEach(observation => {
-//           addInteractionRow(interactionTable, observation)
-//         })
-//       }
-//     }
-//   })
-// }
-
-
-
-
 
 // Handle overlapping track selection button
 const overlappingTracksSelectBtn = document.getElementById('overlapping-track-select-btn');
@@ -885,24 +848,6 @@ if (overlappingTracksSelectBtn) {
     }
   } )
 }
-
-// Handle canceling adding an action to table 
-// const cancelActionSaveBtn = document.getElementById('cancel-label-save-btn');
-// if (cancelActionSaveBtn) {
-//   // Clear toast content
-//   const actionTab = toast.querySelector('#interaction-toast-tab');
-//   if (actionTab) {
-//     actionTab.dataset.obsStatus = 'new';
-//   }
-
-//   // Remove the incomplete observation from table
-
-//   // Dispose toast
-// }
-
-
-
-
 
 /**
  * Change time format to frames to seconds (MM:SS) and vice versa
@@ -1000,11 +945,7 @@ function resizeMainPanel(arg) {
     secondaryPanelEl.classList.add(newClassName) // Add the new class (e.g. col-3)
   }
 
-
-
-
 }
-
 
 
 /**
@@ -1931,15 +1872,15 @@ if (metadataTable) {
   }
 
   // Handle adding/editing metadata entry via the main input elements in the metadata table
-  const addMetadataEntryBtn = metadataTable.querySelector('button.main-save-btn');
-  if (addMetadataEntryBtn) {
-    addMetadataEntryBtn.addEventListener('click',  MetadataEntry.handleEditByUser);
+  const mainMetadataSaveBtn = metadataTable.querySelector('button.main-save-btn');
+  if (mainMetadataSaveBtn) {
+    mainMetadataSaveBtn.addEventListener('click',  MetadataEntry.handleAddOrEditByUser);
   }
 
   // Handle deleting a metadata entry via the main delete button in the metadata table
   const deleteMetadataEntryBtn = metadataTable.querySelector('button.main-delete-btn');
   if (deleteMetadataEntryBtn) {
-    deleteMetadataEntryBtn.addEventListener('click', MetadataEntry.handleDeletionByUser);
+    deleteMetadataEntryBtn.addEventListener('click', MetadataEntry.handleDeleteByUser);
   }
 
   // Handle autocomplete for keys when user is typing in the key input element
@@ -1969,3 +1910,26 @@ modalEls.forEach(modalEl => {
 });
 
 
+const exportMetadataBtn = document.getElementById('export-metadata-btn');
+if (exportMetadataBtn) {
+  exportMetadataBtn.addEventListener('click', async () => {
+    const metadata = Player.getMetadata();
+    if (!(metadata instanceof Metadata)) {
+      showAlertToast('No metadata to export!', 'warning', 'Export Disabled');
+      return;
+    }
+
+    const response = await metadata.exportToCSV();
+
+    if (!response?.canceled && response?.filePath) {
+      showAlertToast('Metadata exported successfully!', 'success');
+      return
+    }
+    
+    if (!response?.canceled && !response?.filePath) {
+      showAlertToast('Failed to export metadata!', 'error');
+      return;
+    }
+
+  });
+}

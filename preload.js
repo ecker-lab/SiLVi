@@ -58,7 +58,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearAppData: () => ipcRenderer.invoke('clear-app-data'),
   checkUpdates: () => ipcRenderer.invoke('check-updates'),
   getExampleFilePaths: () => ipcRenderer.invoke('getExampleFilePaths'),
-  // getUpdates: (callback) => ipcRenderer.on('update-available',  (_event, value) => callback(value))
+  exportMetadataToCSV: (metadataObjArr, fileName) => ipcRenderer.invoke('dialog:exportMetadataToCSV', metadataObjArr, fileName),
 
 });
 
