@@ -490,7 +490,7 @@
                     <span class="material-symbols-rounded" data-view-type="grid">grid_view</span>
                   </button>
                   <button id="secondary-video-panel-collapse-btn" class="btn btn-sm btn-icon-small panel-collapse-btn" tabindex="-1" data-bs-target="#secondary-video-panel-collapse" data-bs-toggle="collapse">
-                    <span class="material-symbols-rounded">visibility</span>
+                    <span class="material-symbols-rounded">visibility_off</span>
                   </button>
                 </div>
                 <!-- <button class="btn btn-icon-small" type="button" data-bs-toggle="collapse" data-bs-target="#secondary-video-card-body" aria-expanded="false">
@@ -525,7 +525,7 @@
                 </div>
               </div>
             </div>
-            <div id="label-tables-collapse" class="collapse show" data-collapse-button="#label-panel-collapse-btn">
+            <div id="label-tables-collapse" class="collapse" data-collapse-button="#label-panel-collapse-btn">
               <div id="label-tables-div" class="card-body">
                 <!-- <div class="tab-pane fade show active" id="behavior-table-tab-pane" role="tabpanel" aria-labelledby="behavior-table-tab" tabindex="0"> -->
                 <div class="d-flex justify-content-between mt-1">
@@ -632,6 +632,8 @@
                   Video Metadata
                 </div>
                 <div>
+                  <!-- <button id="import-metadata-csv-btn" type="button" class="btn btn-icon-normal-filled" tabindex="-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Import CSV file"><span class="material-symbols-rounded">csv</span></button> -->
+                  <button id="import-metadata-yml-btn" type="button" class="btn btn-icon-small" tabindex="-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Import YAML file"><span class="material-symbols-rounded">upload</span></button>
                   <button id="export-metadata-btn" type="button" class="btn btn-icon-small" tabindex="-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Export metadata"><span class="material-symbols-rounded">download</span></button>
                   <button id="metadata-panel-collapse-btn" class="btn btn-icon-small" tabindex="-1" type="button" data-bs-target="#metadata-collapse" data-bs-toggle="collapse">
                     <span class="material-symbols-rounded">visibility_off</span>
@@ -649,32 +651,30 @@
                     <span class="fw-lighter last-edit-time" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Last edit"></span>
                   </div>
                   <div class="table-responsive text-start">
-                    <table id="metadata-table" class="table table-sm table-striped table-hover align-middle ">
+                    <table id="metadata-table" class="table table-sm table-striped table-hover align-middle">
                       <thead>
                         <tr class="always-visible">
                           <th id="metadata-key" scope="col">Key</th>
                           <th id="metadata-value" scope="col">Value</th>
-                          <th id="metadata-type" scope="col" class="cursor-help" data-bs-toggle="tooltip" data-bs-custom-class="long-help-tooltip" data-bs-html="true" data-bs-title="<p><b>Binary data:</b><br>Should have only two possible values<br>E.g., <em>Key</em>: tool reuse observed - <em>Value</em>: Yes</p><p><b>Text data:</b><br>Can be any string of characters<br>E.g., <em>Key</em>: Tool material - <em>Value</em>: grass</p><p><b>Numeric data:</b><br>Should be a number<br>E.g., <em>Key</em>: Temperature - <em>Value</em>: 25.5</p>">Type</th>
+                          <th id="metadata-type" scope="col" class="cursor-help" data-bs-toggle="popover" data-bs-title="Entry data types" data-bs-custom-class="info-popover" data-bs-html="true" data-bs-content="<div class='border rounded p-2 mb-2'><b>Binary data</b><br>Should have only two possible values<br><span class='small me-1'>E.g.,</span><span class='badge text-bg-secondary'>Tool reuse observed: Yes</span></div><div class='border rounded p-2 mb-2'><b>Categorical data</b><br>Can be a number or word<br><span class='small me-1'>E.g.,</span><span class='badge text-bg-secondary'>Tool material: grass</span></div><div class='border rounded p-2 mb-2'><b>Numeric data</b><br>Should be a number<br><span class='small me-1'>E.g.,</span><span class='badge text-bg-secondary'>Temperature: 25.5</span></div><div class='border rounded p-2'><b>Text data</b><br>Can be any string of characters<br><span class='small me-1'>E.g.,</span><span class='badge text-bg-secondary'>Remark: Blurred recording</span></div>">Type</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr class="table-font always-visible">
                           <td headers="metadata-key">
-                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-key-datalist" placeholder="Type to add/edit key" name="metadata-key"></div>
+                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-key-datalist" placeholder="Type to add/edit entry" name="metadata-key"></div>
                           </td>
                           <td headers="metadata-value">
-                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-value-datalist" name="metadata-value" placeholder="Type to add/edit value"></div>
+                            <div class="input-group input-group-sm"><input class="form-control" list="metadata-value-datalist" name="metadata-value" placeholder="Enter value"></div>
                           </td>
                           <td headers="metadata-type">
-                            <select class="form-select form-select-sm">
+                            <select class="form-select form-select-sm" name="metadata-type">
                               <option value="no-selection" selected>Select a type</option>
                               <option value="binary">Binary</option>
                               <option value="text">Text</option>
                               <option value="numeric">Numeric</option>
+                              <option value="categorical">Categorical</option>
                             </select>
-                          </td>
-                          <td>
-                            <button class="btn btn-sm material-symbols-rounded table-btn-icon main-save-btn" data-bs-toggle="tooltip" data-bs-title="Add new entry" data-bs-placement="top">add_circle</button>
                           </td>
                           <td>
                             <button class="btn btn-sm material-symbols-rounded table-btn-icon main-delete-btn" data-bs-toggle="tooltip" data-bs-title="Delete" data-bs-placement="top">delete_forever</button>
@@ -686,7 +686,7 @@
                           </td>
                         </tr>
                         <tr class="always-visible">
-                          <td colspan="5">
+                          <td colspan="4">
                             <div class="d-grid gap-2">
                               <button class="btn btn-sm btn-outline-secondary toggle-btn" data-table-visibility="hidden">Show data table</button>
                             </div>
@@ -695,7 +695,7 @@
                       </tbody>
                       <datalist id="metadata-key-datalist"></datalist>
                       <datalist id="metadata-value-datalist">
-                        <option value="yes" data-type="binary"> binary</option>
+                        <option value="yes" data-type="binary">binary</option>
                         <option value="no" data-type="binary">binary</option>
                       </datalist>
                       <datalist id="metadata-type-datalist"></datalist>

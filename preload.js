@@ -59,6 +59,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkUpdates: () => ipcRenderer.invoke('check-updates'),
   getExampleFilePaths: () => ipcRenderer.invoke('getExampleFilePaths'),
   exportMetadataToCSV: (metadataObjArr, fileName) => ipcRenderer.invoke('dialog:exportMetadataToCSV', metadataObjArr, fileName),
+  importMetadataFromYAML: () => ipcRenderer.invoke('dialog:importMetadataFromYAML'),
 
 });
 

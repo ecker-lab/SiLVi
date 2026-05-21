@@ -150,7 +150,6 @@ document.addEventListener('keydown', handleKeyPress, true);
 const confResp = await window.electronAPI.getFromConfig();
 const confData = (confResp instanceof Object) ? confResp : {};
 const config = new Config(confData);
-console.log('Config instance: ', config);
 if (config instanceof Config) {
   // Check if app has just been updated
   const isUpdated = Config.version ? Player.getAppVersion() !== Config.version : true;
@@ -1012,8 +1011,8 @@ const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {'trigger': 'hover'}));
 
 // Initialize popovers
-// const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-// const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
 
 // Handle undo tracking edits
 const undoTrackEditBtn = document.getElementById('undo-tracking-change-btn');
@@ -1871,11 +1870,6 @@ if (metadataTable) {
     });
   }
 
-  // Handle adding/editing metadata entry via the main input elements in the metadata table
-  const mainMetadataSaveBtn = metadataTable.querySelector('button.main-save-btn');
-  if (mainMetadataSaveBtn) {
-    mainMetadataSaveBtn.addEventListener('click',  MetadataEntry.handleAddOrEditByUser);
-  }
 
   // Handle deleting a metadata entry via the main delete button in the metadata table
   const deleteMetadataEntryBtn = metadataTable.querySelector('button.main-delete-btn');
@@ -1889,6 +1883,7 @@ if (metadataTable) {
     keyInput.addEventListener('input', MetadataEntry.handleKeyAutocomplete);
     keyInput.addEventListener('focus', Player.userIsTyping);  // Disable hotkeys when user is typing
     keyInput.addEventListener('blur', Player.userStoppedTyping);  // Enable hotkeys after user stopped typing
+    keyInput.addEventListener('change', MetadataEntry.handleAddOrEditByUser);
   }
 
   // Handle autocomplete for values when user is typing in the value input element
@@ -1897,6 +1892,12 @@ if (metadataTable) {
     valueInput.addEventListener('input', MetadataEntry.handleValueAutocomplete);
     valueInput.addEventListener('focus', Player.userIsTyping);  // Disable hotkeys when user is typing
     valueInput.addEventListener('blur', Player.userStoppedTyping);  // Enable hotkeys after user stopped typing
+    valueInput.addEventListener('change', MetadataEntry.handleAddOrEditByUser);
+  }
+
+  const typeSelect = metadataTable.querySelector('select[name="metadata-type"]');
+  if (typeSelect) {
+    typeSelect.addEventListener('change', MetadataEntry.handleAddOrEditByUser);
   }
 
 }
@@ -1933,3 +1934,30 @@ if (exportMetadataBtn) {
 
   });
 }
+
+const importMetadataYMLBtn = document.getElementById('import-metadata-yml-btn');
+if (importMetadataYMLBtn) {
+  importMetadataYMLBtn.addEventListener('click', async () => {
+    const metadata = Player.getMetadata();
+    if (!(metadata instanceof Metadata)) {
+      showAlertToast('No metadata to import!', 'warning', 'Import Disabled');
+      return;
+    }
+
+    const response = await metadata.importFromYAML();
+
+    console.log(response);
+    if (!response?.canceled && response?.metadata) {
+      showAlertToast('Metadata imported successfully!', 'success');
+      return
+    }
+    
+    if (!response?.canceled && !response?.metadata) {
+      showAlertToast('Failed to import metadata!', 'error');
+      return;
+    }
+
+  });
+
+}
+

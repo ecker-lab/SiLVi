@@ -575,23 +575,6 @@ async function loadSecondaryVideos(videoSrcArr) {
       player.setCurrentTime(Player.getMainPlayer().getCurrentTime());
       player.setPlaybackRate(Player.getMainPlayer().getPlaybackRate());
       await player.setName();
-
-      // // Set frame rate and dismiss button
-      // player.on('loadeddata', async () => {
-            
-      //   // Set frame rate 
-      //   await player.setFrameRate();
-
-      //   // Dispose player if close button is clicked
-      //   const playerColDiv = player.el.parentNode.parentNode;
-      //   if (playerColDiv) {
-      //     const disposeButton = playerColDiv.querySelector('.btn-dispose-player');
-      //     if (disposeButton) {
-      //       disposeButton.addEventListener('click', () => player.dispose());
-      //     }
-      //   }
-    
-      // });
       
 
     } catch (error) {

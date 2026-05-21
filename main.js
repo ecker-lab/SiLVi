@@ -2,6 +2,7 @@
 const { app, BrowserWindow, Menu, MenuItem, ipcMain, dialog } = require('electron');
 const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
 const { MediaInfo , mediaInfoFactory} = require('mediainfo.js');
+const yaml = require('js-yaml');
   
 // run this as early in the main process as possible 
 // https://www.electronforge.io/config/makers/squirrel.windows
@@ -1299,6 +1300,30 @@ function handleWriteMetadataToCSV(metadataObjArr, fileName, filePath) {
 
 }
 
+async function handleImportMetadataFromYAML() {
+
+  const result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+    title: 'Import Metadata',
+    message: 'Choose a YAML file to import metadata from',
+    filters: [{ name: 'YAML Files', extensions: ['yaml', 'yml'] }],
+    properties: ['openFile']  
+  });
+
+  // Handle cancellation
+  if (result.canceled) {
+    return { canceled: true }
+  }
+
+  try {
+    const doc = yaml.load(fs.readFileSync(result.filePaths[0], 'utf8'));
+    console.log(doc);
+    return { canceled: false, metadata: doc }
+  } catch (e) {
+    console.log(e);
+    return { canceled: false, error: e }
+  }
+
+}
 
 /**
  * Exports the metadata to a file chosen by the user via dialog menu
@@ -2915,6 +2940,11 @@ app.whenReady().then(() => {
     const response = await handleExportMetadataToCSV(metadataObjArr, fileName);
     return response;
   })
+  ipcMain.handle('dialog:importMetadataFromYAML', async (e) => {
+    const response = await handleImportMetadataFromYAML(e);
+    return response;
+  })
+
 
   createWindow();
 

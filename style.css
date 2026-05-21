@@ -31,7 +31,6 @@ span.size-16 {
   font-variation-settings: 'opsz' 16;
 }
 
-/* Recommended icon sizes */
 span.size-20 {
   font-size: 20px;
   font-variation-settings: 'opsz' 20;
@@ -47,14 +46,6 @@ span.size-40 {
 span.size-48 {
   font-size: 48px;
   font-variation-settings: 'opsz' 48;
-}
-
-span.filled {
-  font-variation-settings:
-  'FILL' 1,
-  'wght' 400,
-  'GRAD' -25,
-  'opsz' 24
 }
 
 .thin {
@@ -175,7 +166,7 @@ span.filled {
   outline: 2px solid whitesmoke;
 }
 
-.btn-icon-normal {
+.btn-icon-normal, .btn-icon-normal-filled {
   background-color: none;
   border: none;
   border-radius: 0px;
@@ -191,10 +182,14 @@ span.filled {
   'GRAD' 0
 }
 
-/* .no-fill {
+.btn-icon-normal-filled span.material-symbols-rounded {
+  font-size: 24px;
   font-variation-settings: 
-  'FILL' 0,
-} */
+  'opsz' 24,
+  'FILL' 1,
+  'wght' 300,
+  'GRAD' 0
+}
 
 .main-panel-btn {
   /* background-color: none; */
@@ -218,9 +213,8 @@ span.filled {
   width: fit-content;
 }
 
-
 /* Small buttons with icons on the main interface */
-.btn-icon-small {
+.btn-icon-small, .btn-icon-small-filled {
   background-color: none;
   border: none;
   border-radius: 0px;
@@ -234,6 +228,15 @@ span.filled {
   'FILL' 0,
   'wght' 100,
   'GRAD' -25,
+}
+
+.btn-icon-small-filled span.material-symbols-rounded {
+  font-size: 20px;
+  font-variation-settings: 
+  'opsz' 20,
+  'FILL' 1,
+  'wght' 400,
+  'GRAD' 0,
 }
 
 .btn-icon-small:focus {
@@ -509,15 +512,6 @@ video {
   font-weight: bold;
 }
 
-/* td.input-group {
-  width: auto;
-  font-size: 10px;
-} */
-
-/* body {
-  margin: 0;
-} */
-
 .title-bar {
   /* height: 35px; */
   /* background: black; */
@@ -682,6 +676,11 @@ video {
 .class-color-text {
   color: white;
   background-color: var(--class-color-text);
+}
+
+.filled {
+  font-variation-settings:
+  'FILL' 1,
 }
 
 
