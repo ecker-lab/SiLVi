@@ -1,0 +1,15 @@
+categorical:
+  tool_material:
+    - grass
+    - wood fresh
+    - wood old
+    - bamboo
+  species:
+    - human
+  age_group:
+binary:
+  - young involved
+  - tool reuse observed
+numerical:
+  - temperature
+  - time of gesture
