@@ -3,6 +3,12 @@ const { app, BrowserWindow, Menu, MenuItem, ipcMain, dialog } = require('electro
 const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
 const { MediaInfo , mediaInfoFactory} = require('mediainfo.js');
 const yaml = require('js-yaml');
+
+const { parse } = require('csv-parse/sync');
+
+// Enable HEVC decoder support
+app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport');
+
   
 // run this as early in the main process as possible 
 // https://www.electronforge.io/config/makers/squirrel.windows
@@ -111,6 +117,7 @@ const menuTemplate = [
 const path = process.platform === 'win32' ? require('node:path/win32') : require('node:path/posix');
 const fs = require('node:fs')
 const readline = require('node:readline');
+const { type } = require('node:os');
 
 // Update the app automatically
 updateElectronApp({
@@ -121,7 +128,7 @@ updateElectronApp({
   updateInterval: '5 minutes'
 });
 
-const videoFormatNames = ['mkv', 'avi', 'mp4'];
+const videoFormatNames = ['mkv', 'avi', 'mp4', 'webm', 'mov', 'mpeg', 'mpg', 'flv', 'ogg', 'ogv'];
 const videoExtensions = videoFormatNames.map(name => '.' + name)
 const configFileName = 'config.json';
 
@@ -144,8 +151,8 @@ const metadataHeaderRow = ['key', 'value', 'type'];
 // Define the value for variables which do not have defined values
 const naStr = 'NA';
 
-// Define CSV delimiter
-const csvDelimiter = ';';
+// Define CSV delimiters
+const csvDelimiters = [';', ',', '\t', '|', ' ', ':'];
 
 // Numbers after decimal point for time-related values in exported files
 const precisionForSeconds = 4;
@@ -454,10 +461,16 @@ function handleReadTrackingFile(filePath) {
       if (!line.startsWith('#')) {
 
         // Split the line into columns
-        const delimiter = line.includes(';') ? ';' : ',';
+        // const delimiter = line.includes(';') ? ';' : ',';
 
-        const lineArr = line.split(new RegExp('\\s*' + delimiter + '\\s*'));
+        // const lineArr = line.split(new RegExp('\\s*' + delimiter + '\\s*'));
         // console.log('Splitted line regex', new RegExp('\\s*' + delimiter + '\\s*'));
+
+        const lineArr = parse(line, {
+          delimiter: csvDelimiters,
+          skip_empty_lines: true,
+          trim: true
+        }).flat(Infinity).filter(name => name.length > 0);
 
         // Skip the empty line
         if (lineArr.length === 0) return;
@@ -719,69 +732,6 @@ function handleReadTrackingFileOld(filePath) {
   return tracks
 }
 
-/**
- * 
- * @param {*} filePath 
- * @returns - dictionary with rows in the tracking file
- */
-// async function handleReadIdentificationFile(filePath) {
-//   // Same structure in tracking file until the end of last tracking coordinate
-//   // File structure after tracking boxes coordinates:
-//   // confidence of tracking: ?
-//   // class id: (e.g. 0)
-//   // order of identified individual in the individuals.txt file: (e.g. 7)
-//   // confidence in detection: (e.g. 0.6600000262260437)
-
-  
-//   // Read the file
-//   const data = fs.readFileSync(filePath, 'utf8', (err, data) => {
-//     if (err) {
-//       console.error(err);
-//       return;
-//     }
-//   });
-  
-  
-//   // Determine file delimiter
-//   const delimiter = determineDelimiter(filePath);
-//   console.log(delimiter)
-//   if (!delimiter) {
-//     console.log('File delimiter could not be detected!');
-//     return;
-//   }
-  
-//   let idMap = new Map();
-  
-//   // Split file content into rows and then list of entries for each row
-//   const rows = data.split('\n').map(row => row.split(delimiter));
-//   rows.forEach(row => {
-//     const [trackNumber, trackId, x, y, width, height, confidenceTrack, classId, nameOrder, confidenceId] = row;
-//     const trackInfo = {
-//       'trackNumber': parseInt(trackNumber),
-//       'trackId': parseInt(trackId),
-//       'x': parseFloat(x),
-//       'y': parseFloat(y),
-//       'width': parseFloat(width),
-//       'height': parseFloat(height),
-//       'confidenceTrack': parseFloat(confidenceTrack),
-//       'classId': parseInt(classId),
-//       'nameOrder': parseInt(nameOrder),
-//       'confidenceId': parseFloat(confidenceId)
-//     }
-
-//     // Populate the map
-//     if (!idMap.has(parseInt(trackNumber))) {
-//       idMap.set(parseInt(trackNumber), [trackInfo]);
-//     } else {
-//       idMap.get(parseInt(trackNumber)).push(trackInfo);
-//     }
-
-//   })
-
-//   return {idMap: idMap, fileDelimiter: delimiter}
-
-
-// }
 
 function handleReadNameFile(filePath) {
   const data = fs.readFileSync(filePath, 'utf8', (err, data) => {
@@ -791,21 +741,13 @@ function handleReadNameFile(filePath) {
     }
   });
 
-  // Split the data into rows
-  const rows = data.split('\n');
 
-  // Get the first line to determine file delimiter
-  // const delimiter = determineDelimiter(rows[0]);
-  // if (!delimiter) {
-  //   console.log('File delimiter could not be detected!');
-  //   return;
-  // }
-
-  const names = rows
-  .map(row => row.split(csvDelimiter))
-  .filter(row => row.length > 0)
-  .flat(Infinity)
-  .map(name => name.trim());
+  // Parse the data into an array of names using the csv-parse library
+  const names = parse(data, {
+    delimiter: csvDelimiters,
+    skip_empty_lines: true,
+    trim: true
+  }).flat(Infinity).filter(name => name.length > 0); // Remove empty strings
 
   // Attempt to verify the validity of the name file
   const nameCount = names.length;
@@ -1263,7 +1205,7 @@ function handleWriteMetadataToCSV(metadataObjArr, fileName, filePath) {
   }
 
   try {
-    const colHeaderRow = metadataHeaderRow.join(csvDelimiter);
+    const colHeaderRow = metadataHeaderRow.join(csvDelimiters[0]); // Use the first delimiter as the default
     writeStream.write(`${colHeaderRow}\n`);
 
     console.log('metadataObjArr', metadataObjArr);
@@ -1271,7 +1213,7 @@ function handleWriteMetadataToCSV(metadataObjArr, fileName, filePath) {
     metadataObjArr.forEach(metadataObj => {
       const rowArr = metadataHeaderRow.map(header => metadataObj[header] ?? naStr);
 
-      writeStream.write(`${rowArr.join(csvDelimiter)}\n`);
+      writeStream.write(`${rowArr.join(csvDelimiters[0])}\n`);
   
     });
 
@@ -1582,7 +1524,7 @@ async function handleSaveTrackingEdits(trackArr, fileName, orderedNamesArr, user
  */
 function generateEthogramRow(behaviorObj, precision, videoFPS, delimiter) {
 
-  let fileDelimiter = delimiter ? delimiter : csvDelimiter;
+  let fileDelimiter = delimiter ? delimiter : csvDelimiters[0];
 
   // Get the subject name and action of the behavior
   const subjectName = behaviorObj.subjectName;
@@ -1774,6 +1716,11 @@ async function handleReadNotesFile(filePath) {
  */
 async function handleReadMetadataFile(filePath) {
 
+  if (!filePath) {
+    console.log('No file path was given for the metadata!');
+    return;
+  }
+
   // Check if config file exists
   if (!fs.existsSync(filePath)) {
     console.log('Metadata file could not be found!');
@@ -1784,7 +1731,7 @@ async function handleReadMetadataFile(filePath) {
     const metadata = JSON.parse(fs.readFileSync(filePath), 'utf8');
     return metadata;
   } catch (err) {
-    console.log('Metadata file could not be found!', err);  
+    console.log('Metadata file could not be read!', err);  
   }
 
 
@@ -1856,13 +1803,19 @@ async function handleReadBehaviorFile(filePath) {
       // Skip the metadata rows
       if (!line.startsWith('#')) {
         
-        // Split the line into columns
-        const delimiter = line.includes(';') ? ';' : ',';
-        console.log('Delimiter:', delimiter);
-        const lineArr = line.split(new RegExp('\\s*' + delimiter + '\\s*'));
-        console.log('Splitted line regex', new RegExp('\\s*' + delimiter + '\\s*'));
+        // // Split the line into columns
+        // const delimiter = line.includes(';') ? ';' : ',';
+        // console.log('Delimiter:', delimiter);
+        // const lineArr = line.split(new RegExp('\\s*' + delimiter + '\\s*'));
+        // console.log('Splitted line regex', new RegExp('\\s*' + delimiter + '\\s*'));
+
+        // Use csv-parse to parse the line into columns
+        const lineArr = parse(line, {
+          delimiter: csvDelimiters,
+          skip_empty_lines: true,
+          trim: true 
+        }).flat(Infinity).filter(name => name.length > 0); // Remove empty strings
       
-        
         // Get the headers from the first row
         if (lineNumber === 0) {
           
@@ -1883,7 +1836,6 @@ async function handleReadBehaviorFile(filePath) {
           // Check for index -1 (indicates element not being found)
           const indexNames = ['Subject', 'Action', 'Target', 'Start Frame', 'End Frame']
           const indices = [subjectIdx, actionIdx, targetIdx, startFrameIdx, endFrameIdx];
-          console.log(indices);
           const missingIdx = indices.indexOf(-1);
           if (missingIdx >= 0) {
             const missingName = indexNames.at(missingIdx);
@@ -2000,7 +1952,7 @@ function handleWriteBehaviorsToFile(observations, fileName, videoFPS, username, 
   const fileOutName = fileName ? fileName : 'unknown';
 
   // Determine the delimiter
-  const delimiter = csvDelimiter;
+  const delimiter = csvDelimiters[0];
 
   // Add the extension to the file name
   const fileNameWithExt = `${fileOutName}_behaviors.csv`;
@@ -2339,7 +2291,7 @@ async function handleSaveSnapshot(data) {
             return;
           }
         }
-        fs.writeFileSync(path.join(labelDirPath, labelFileName), labelRows.map(row => row.join(csvDelimiter)).join('\n'));
+        fs.writeFileSync(path.join(labelDirPath, labelFileName), labelRows.map(row => row.join(csvDelimiters[0])).join('\n'));
       }
       return outerDirPath;
     } catch (err) {

@@ -29,6 +29,9 @@ import {
   showPopover,
   getRandomColors,
   updateClassEls,
+  isNullish,
+  isSetOrArray,
+  isEmptyish
 
 } from './helpers.js';
 
@@ -397,6 +400,8 @@ class Player {
   // DOM ID for the video metadata table
   static metadataTableId = 'metadata-table';
 
+  
+
   static setMouseDown() {
     if (!Player.hasOwnProperty('mouseIsDown')) return;
     Player.mouseIsDown = true;
@@ -547,16 +552,6 @@ class Player {
 
     // Return the result
     return result;
-
-
-    
-    // Check if mouse is inside the handle (located at right bottom corner of a tracking box)
-    // return (
-    //   mouseX >= box.x + box.width - handleSize && 
-    //   mouseX <= box.x + box.width + handleSize && 
-    //   mouseY >= box.y + box.height - handleSize &&
-    //   mouseY <= box.y + box.height + handleSize
-    // );
 
   }
 
@@ -719,14 +714,22 @@ class Player {
 
     // Object to hold response from metadata file reading 
     const metadataRsp = await window.electronAPI.readMetadataFile(metadataFilePath);
+    
+    // Update player time stamps
     Player.setCurrentTimeAll(metadataRsp?.timestamp?.value);
 
-    try {
-      Player.getMetadata()?.updateFromFileResponse?.(metadataRsp);
-    } catch (err) {
-      console.log('Metadata could not be updated from file response!', err);
+    // Determine the metadata object to update the player metadata with (either from the metadata file linked to the main video or from the config file if no metadata file is found)
+    const metadataObj = metadataRsp ?? Config.videoMetadata;
+    
+    // If any metadata object is found
+    if (!isNullish(metadataObj) && metadataObj instanceof Object) {
+      try {
+        // Update the Metadata instance entries
+        Player.getMetadata()?.updateFromObject?.(metadataObj);
+      } catch (err) {
+        console.log('Metadata could not be updated from file response!', err);
+      }
     }
-
 
     // Look for saved individual names first in metadata, then in config if no names in metadata
     const nameArr = metadataRsp?.individuals?.value ?? Config.individualNames;
@@ -1062,16 +1065,6 @@ class Player {
         }
 
       }
-          
-      // // Get the default skip forward and back seconds selection
-      // const skipSecondsSelectEl = document.getElementById('skip-seconds-select');
-      // if (skipSecondsSelectEl) {        
-      //   // Change skip forward and back seconds when user changes the relevant setting
-      //   skipSecondsSelectEl.addEventListener('change', async () => {
-      //     await Player.setSkipSeconds(skipSecondsSelectEl.selectedOptions[0].value);
-          
-      //   });
-      // }
 
       const controlBar = this.getControlBar();
       if (!controlBar) return;
@@ -1962,16 +1955,15 @@ class Player {
   }
 
   /**
-   * 
-   * @param {*} actionNameArr 
-   * @returns 
+   * Sets the names of the actions
+   * @param {String[]} nameArr Array of action names 
+   * @returns {String[] | undefined} Updated array of action names or undefined if the input is invalid
    */
-  static async setActionNames(actionNameArr) {
-    if (!actionNameArr) return;
-    Player.actionNameArr = actionNameArr;
-    const actionNames = Player.getActionNames();
+  static async setActionNames(nameArr) {
+    if (!Array.isArray(nameArr) || nameArr.length < 1) return;
     
-    if (!Array.isArray(actionNames) || actionNames.length < 1) return;
+    Player.actionNameArr = nameArr;
+    const actionNames = Player.getActionNames();
 
     // Update the metadata
     const metadata = Player.getMetadata();
@@ -1980,50 +1972,50 @@ class Player {
     // Check if there is at least one assigned hotkey for actions
     const hotkeyCategory = 'actions';
     const hotkeysInCategory = Hotkey.findAll({ category: hotkeyCategory });
-    const anyAssignedKey = hotkeysInCategory.some(
-      hotkey => hotkey.key !== undefined && hotkey.key !== null && hotkey.key !== ''
-    );
+    // const anyAssignedKey = hotkeysInCategory.some(
+    //   hotkey => hotkey.key !== undefined && hotkey.key !== null && hotkey.key !== ''
+    // );
 
-    // If there is NO previously assigned hotkeys, create hotkeys for actions automatically
-    if (!anyAssignedKey) {
-      let keyArr = Hotkey.getAllKeysWithoutModifiers();
-      actionNames.forEach(name => {
-        let breakExecuted = false;
-        let newKey;
+    // Remove any existing Hotkey instances for this category before creating new ones
+    hotkeysInCategory.forEach(hotkey => hotkey.delete());
+
+    // Create hotkeys for actions automatically
+    let keyArr = Hotkey.getAllKeysWithoutModifiers();
+    actionNames.forEach(name => {
+      let breakExecuted = false;
+      let newKey;
+      
+      // Iterate over the letters of a name
+      for (let i = 0; i < name.length; i++) {
         
-        // Iterate over the letters of a name
-        for (let i = 0; i < name.length; i++) {
-          
-          // Check whether this was already in the shortcut list and ensure it is not a space character
-          // const lowerChar = name[i].toLowerCase();
-          const char = name[i];
-          const conflictingHotkeys = Hotkey.findConflicts(char, []);
-          if (!keyArr.includes(char) && char !== ' ') {
-            // If not, add it as a new shortcuts
-            newKey = char;
-            keyArr.push(newKey);
-            breakExecuted = true;
-            break;
-  
-          }
-  
-        }
-  
-        // If no suitable letter has been found with traversing the entire string
-        if (!breakExecuted) {
-          // Assign a random letter
-          newKey = getRandomLetterNotIn(keyArr);
-          if (newKey) keyArr.push(newKey);
-  
-        }
-  
-        // Update the hotkeys 
-        const newHotkey = new Hotkey(hotkeyCategory, name, name, newKey);
-  
-  
-      });
+        // Check whether this was already in the shortcut list and ensure it is not a space character
+        // const lowerChar = name[i].toLowerCase();
+        const char = name[i];
+        const conflictingHotkeys = Hotkey.findConflicts(char, []);
+        if (!keyArr.includes(char) && char !== ' ') {
+          // If not, add it as a new shortcuts
+          newKey = char;
+          keyArr.push(newKey);
+          breakExecuted = true;
+          break;
 
-    }
+        }
+
+      }
+
+      // If no suitable letter has been found with traversing the entire string
+      if (!breakExecuted) {
+        // Assign a random letter
+        newKey = getRandomLetterNotIn(keyArr);
+        if (newKey) keyArr.push(newKey);
+
+      }
+
+      // Update the hotkeys 
+      const newHotkey = new Hotkey(hotkeyCategory, name, name, newKey);
+
+    });
+
    
     // Update list in HTML
     updateHotkeyDomElement(hotkeyCategory);
@@ -2037,10 +2029,8 @@ class Player {
       actionDatalistEl.removeChild(actionDatalistEl.firstChild);
     }
       
-    // Add up-to-date action names to this datalist element
-    if (actionNameArr.length < 1) return;
-    
-    actionNameArr.forEach(actionName => {
+    // Add up-to-date action names to this datalist element    
+    actionNames.forEach(actionName => {
       const optionEl = document.createElement('option');
       optionEl.value = actionName;
       actionDatalistEl.append(optionEl);
@@ -8964,6 +8954,11 @@ class Hotkey {
  */
 class MetadataEntry { 
 
+  // Timeout for user typing in the input fields for metadata entries to prevent executing relevant functions on every keystroke
+  static inputTimeout;
+
+  static inputDebounce = 400;
+
   // Default keys (and their predefined types) retrieved by the reading the video metadata before any user input. These keys will later be used when creating a Metadata instance.
   static defaultKeyTypePairs = {
     'videoName': 'text',
@@ -9006,7 +9001,15 @@ class MetadataEntry {
   // Default values for the DOM elements related to metadata entry manipulation
   static defaultHelperText = 'Enter a key to create a new entry or edit an existing one.';
 
-  constructor(key, value, type) {
+  /**
+   * 
+   * @param {*} key 
+   * @param {*} value 
+   * @param {String} type 
+   * @param {Array | null | undefined} categories Will be used if the type is categorical to keep track of the different categories. It can be either an array of categories or a single category. If it is a single category, it will be converted to a set with one element. If it is null or undefined, it will be initialized as an empty set.
+   * @returns 
+   */
+  constructor(key, value, type, categories) {
     for (const arg of [key, value, type]) {
       if (typeof arg === 'undefined') {
         throw new Error(`Invalid argument for metadata entry: ${arg}`);
@@ -9023,19 +9026,142 @@ class MetadataEntry {
     this._type = type;
     this._value = validatedVal;
     
+    // If the type is categorical
     if (this._type === 'categorical') {
-    
-      this._categories = new Set(); // For categorical type, keep track of the different categories)
-      
-      if (value === null) return;
-      
-      if (Array.isArray(value)) {
-        // Use the setter to add each category separately and check if they are valid
-        this.categories = value; 
-      } else {
-        this._categories.add(value);
-      }
+
+      // If the optional categories argument is not provided, initialize it as an empty set to avoid errors when adding categories later.
+      if (isNullish(categories)) {
+        this._categories = new Set(); 
+      } else { 
+        try {
+          this.categories = categories; // Use the setter to add the categories and check if they are valid
+        } catch (error) {
+          console.error(error);
+          throw error;
+        }
+      }  
     }
+
+  }
+
+
+  get key() {
+    return this._key;
+  }
+  
+  get value() {
+    return this._value;
+  }
+
+  get type() {
+    return this._type;
+  }
+
+  set key(key) {
+    const trimmedKey = typeof key === 'string' ? key.trim() : key;
+    if (typeof trimmedKey === 'undefined' || trimmedKey === '' || trimmedKey === null) {
+      return;
+    }
+    this._key = trimmedKey;
+    return this._key;
+  }
+
+  /**
+   * Sets the categories for a categorical metadata entry. If the metadata entry is not of type categorical, an error is thrown. If the input categories are not valid, an error is thrown.
+   * @param {Array | Set | null} categories Array or Set of categories for the categorical metadata entry
+   * @returns {Set | undefined} The updated set of categories or undefined if the metadata entry is not categorical or if the input categories are not valid
+   */
+  set categories(categories) {
+    if (this.type !== 'categorical') {
+      console.warn(`Trying to set categories for metadata entry of type ${this.type}. This is not a categorical metadata entry, so categories cannot be set.`);
+      return;
+    }
+
+    if (isNullish(categories)) {
+      console.warn(`Trying to set categories for categorical metadata entry with nullish value ${categories}. Categories cannot be set to null or undefined.`);
+      return;
+    };
+
+    // If the input is not an array, convert it to an array.
+    const inputArr = isSetOrArray(categories) ? categories : new Set([categories]);
+
+    const parsedCategories = [];
+    inputArr.forEach(category => {
+      try {
+        const parsedCategory = MetadataEntry.parseCategoricalInput(category); 
+        parsedCategories.push(parsedCategory);
+      } catch (error) {
+        console.warn(`Invalid category for categorical metadata entry: ${category}. This category will be ignored.`);
+        showAlertToast(`Invalid category for categorical metadata entry: ${category}. This category will be ignored.`, 'warning');
+      }
+    });
+
+    // Create a Set of unique categories
+    this._categories = new Set(parsedCategories);
+    this.updateDomEls();
+
+    return this._categories;
+
+  }
+
+  /**
+   * Gets the categories for a categorical metadata entry. If the metadata entry is not of type categorical, an error is thrown.
+   * @returns {Set} Set of categories for the categorical metadata entry
+   * @throws {Error} If the metadata entry is not of type categorical
+   */
+  get categories() {
+    if (this.type !== 'categorical') {
+      throw new Error(`Cannot get categories for metadata entry of type ${this.type}`);
+    }
+    return this._categories;
+  }
+
+  
+  /**
+   * Sets the value of the metadata entry. If the new value is not valid for the type of the metadata entry, an error is thrown.
+   * @param {*} value New value for the metadata entry
+   * @throws {Error} If the new value is not valid for the type of the metadata entry
+   */
+  set value(value) {
+    if (typeof value === 'undefined') {
+      throw new Error(`Invalid value for metadata entry: ${value}`);
+    }
+
+    const type = this.type;
+    const validatedValue = MetadataEntry.validateValueForType(value, type);
+    if (typeof validatedValue === 'undefined') {
+      throw new Error(`Invalid value type for metadata entry: ${value} is not of type ${type}`); 
+    }
+    this._value = validatedValue;
+
+  }
+
+  /**
+   * Sets the type of the metadata entry. If the new type is not valid or if the current value is not compatible with the new type, an error is thrown.
+   * @param {String | null} type New type for the metadata entry
+   * @throws {Error} If the new type is not valid or if the current value is not compatible with the new type
+   */
+  set type(type) {
+    // Null is compatible with all types, so it can be set without validation
+    if (type === null) {
+      this._type = type;
+      return;
+    }
+
+    // Validate the new type
+    if (!MetadataEntry.validTypes.includes(type) || typeof type === 'undefined') {
+      throw new Error(`Invalid type for metadata entry: ${type}`);
+    }
+
+    // Check if the value is compatible with the new type. If it is not compatible, throw an error.
+    const value = this.value;
+    const validatedValue = MetadataEntry.validateValueForType(value, type);
+    if (typeof validatedValue === 'undefined') {
+      throw new Error(`Current value ${value} is not compatible with the new type ${type}`);    
+    }
+    
+    // If it is compatible, set the new type.
+    this._type = type;
 
   }
 
@@ -9070,13 +9196,14 @@ class MetadataEntry {
 
   /**
    * Parses the input value to a categorical value. If the value cannot be parsed to a categorical value, an error is thrown. Categorical values are represented as strings and can be added to the categories set of the MetadataEntry instance.
-   * @param {String | Number} value 
-   * @returns {String} Parsed categorical value or an error if the value cannot be parsed to a categorical value
+   * @param {String | Number | null | undefined} value 
+   * @returns {String | null} Parsed categorical value or an error if the value cannot be parsed to a categorical value
    * @throws {Error} If the value is not a valid categorical value for a categorical metadata entry
    */
   static parseCategoricalInput(value) {
-    if (typeof value === 'undefined' || value === null) {
-      throw new Error(`Invalid value for categorical metadata entry: ${value}`);
+    // Return null for nullish values (null or undefined) because they are considered valid for all types and can be used to represent missing values.
+    if (isNullish(value)) {
+      return null;
     }
 
     // If the value is not a string, try to convert it to a string. 
@@ -9122,7 +9249,7 @@ class MetadataEntry {
 
     const positiveVal = MetadataEntry.positiveBinaryValue;
     const negativeVal = MetadataEntry.negativeBinaryValue;
-
+f
     if (typeof value === 'boolean') {
       return value ? positiveVal : negativeVal;
     }
@@ -9202,16 +9329,16 @@ class MetadataEntry {
    * @returns {Boolean | Number | String | Array | null | undefined} The validated value if it is valid for the type, undefined otherwise
    */
   static validateValueForType(value, type) {
+    // Null is compatible with all types
+    if (value === null) return null; 
 
     if (typeof type === 'undefined' || !MetadataEntry.validTypes.includes(type)) {
       return;
     }
 
-    // Null is compatible with all types
-    if (value === null) return null; 
-
     try {
-      return MetadataEntry.parseInputByType(value, type);
+      const parsedValue = MetadataEntry.parseInputByType(value, type);
+      return parsedValue;
     } catch (error) {
       console.log(error);
       return;
@@ -9219,114 +9346,23 @@ class MetadataEntry {
 
   }
 
-  get key() {
-    return this._key;
-  }
-  
-  get value() {
-    return this._value;
-  }
-
-  get type() {
-    return this._type;
-  }
-
-  set key(key) {
-    const trimmedKey = typeof key === 'string' ? key.trim() : key;
-    if (typeof trimmedKey === 'undefined' || trimmedKey === '' || trimmedKey === null) {
-      return;
-    }
-    this._key = trimmedKey;
-    return this._key;
-  }
-
-  /**
-   * Sets the categories for a categorical metadata entry. If the metadata entry is not of type categorical, an error is thrown. If the input categories are not valid, an error is thrown.
-   * @param {Array} categories Array of categories for the categorical metadata entry
-   * @throws {Error} If the metadata entry is not of type categorical or if the input categories are not valid for a categorical metadata entry
-   */
-  set categories(categories) {
-    if (this.type !== 'categorical') {
-      throw new Error(`Cannot set categories for metadata entry of type ${this.type}`);
-    }
-    if (!Array.isArray(categories)) {
-      throw new Error(`Categories must be an array for metadata entry of type categorical!`);
-    }
-
-    // Filter out invalid categories (undefined, null, empty string)
-    const filteredCategories = categories.filter(category => typeof category !== 'undefined' && category !== null && category !== '');
-
-    // Create a Set of unique categories
-    this._categories = new Set(filteredCategories);
-
-    this.updateDomEls();
-  }
-
-  /**
-   * Gets the categories for a categorical metadata entry. If the metadata entry is not of type categorical, an error is thrown.
-   * @returns {Set} Set of categories for the categorical metadata entry
-   * @throws {Error} If the metadata entry is not of type categorical
-   */
-  get categories() {
-    if (this.type !== 'categorical') {
-      throw new Error(`Cannot get categories for metadata entry of type ${this.type}`);
-    }
-    return this._categories;
-  }
-
-  
-  /**
-   * Sets the value of the metadata entry. If the new value is not valid for the type of the metadata entry, an error is thrown.
-   * @param {*} value New value for the metadata entry
-   * @throws {Error} If the new value is not valid for the type of the metadata entry
-   */
-  set value(value) {
-    if (typeof value === 'undefined') {
-      throw new Error(`Invalid value for metadata entry: ${value}`);
-    }
-
-    const type = this.type;
-    const validatedValue = MetadataEntry.validateValueForType(value, type);
-    if (typeof validatedValue === 'undefined') {
-      throw new Error(`Invalid value type for metadata entry: ${value} is not of type ${type}`); 
-    }
-    this._value = validatedValue;
-
-  }
-
-  /**
-   * Sets the type of the metadata entry. If the new type is not valid or if the current value is not compatible with the new type, an error is thrown.
-   * @param {String} type New type for the metadata entry
-   * @throws {Error} If the new type is not valid or if the current value is not compatible with the new type
-   */
-  set type(type) {
-
-    // Validate the new type
-    if (!MetadataEntry.validTypes.includes(type)) {
-      throw new Error(`Invalid type for metadata entry: ${type}`);
-    }
-
-    // Check if the value is compatible with the new type 
-    // Null is compatible with all types
-    const value = this.value;
-    const validatedValue = MetadataEntry.validateValueForType(value, type);
-    if (typeof validatedValue === 'undefined') {
-      throw new Error(`Current value ${value} is not compatible with the new type ${type}`);    
-    }
-    this._type = type;
-  }
 
   /**
    * Adds categories to the existing categories of a categorical metadata entry. If the metadata entry is not of type categorical, an error is thrown.
    * @param  {...any} categories 
    * @throws {Error} If the metadata entry is not of type categorical or if any of the input categories are not valid for a categorical metadata entry
    */
-  addCategories(...categories) {
+  addCategory(...categories) {
     if (this.type !== 'categorical') {
       throw new Error(`Cannot add category to metadata entry of type ${this.type}`);
     }
 
-    const filteredCategories = categories.filter(category => typeof category !== 'undefined' && category !== null && category !== '');
+    if (isNullish(categories) || categories.length === 0) {
+      console.warn(`Trying to add nullish or empty category/categories ${categories} to categorical metadata entry. No category will be added.`);
+      return;
+    }
+
+    const filteredCategories = categories.filter(category => !isEmptyish(category));
 
     filteredCategories.forEach(category => {
       this._categories?.add?.(category);
@@ -9350,7 +9386,7 @@ class MetadataEntry {
 
     const validatedValue = MetadataEntry.validateValueForType(value, type);
     if (typeof validatedValue === 'undefined') {
-      throw new Error(`Invalid value ${value} for metadata entry of type ${type}`);
+      throw new Error(`Invalid value ${value} for type ${type}!`);
     }
 
     this._value = validatedValue;
@@ -9423,6 +9459,7 @@ class MetadataEntry {
       keyInputEl.value = '';
       valueInputEl.value = '';
       typeSelectEl.value = 'no-selection';
+      typeSelectEl.selectedIndex = 0;
     }
 
 
@@ -9603,13 +9640,13 @@ class MetadataEntry {
       // Append the row to the table body
       tableBody.append(rowEl);
 
-      valueInputEl.addEventListener('input', MetadataEntry.handleValueAutocomplete);
-      valueInputEl.addEventListener('change', MetadataEntry.handleAddOrEditByUser);
+      valueInputEl.addEventListener('input', MetadataEntry.handleValueInputWithDebounce);
+      valueInputEl.addEventListener('change', MetadataEntry.handleAddOrEdit);
       
       valueInputEl.addEventListener('focus', Player.userIsTyping);
       valueInputEl.addEventListener('blur', Player.userStoppedTyping);
 
-      typeSelectEl.addEventListener('change', MetadataEntry.handleAddOrEditByUser);
+      typeSelectEl.addEventListener('change', MetadataEntry.handleAddOrEdit);
       
       return;
 
@@ -9644,14 +9681,22 @@ class MetadataEntry {
     return {
       key: this.key,
       value: this.value,
-      type: this.type
+      type: this.type,
+      categories: MetadataEntry.isCategoricalType(this.type) ? Array.from(this.categories) : undefined
     };
+  }
+
+  static handleKeyInputWithDebounce(e) {
+    clearTimeout(MetadataEntry.inputTimeout);
+    MetadataEntry.inputTimeout = setTimeout(() => {
+      MetadataEntry.handleKeyInput(e);
+    }, MetadataEntry.inputDebounce); // Debounce time in milliseconds
   }
 
   /**
    * Handle autocomplete for keys when user is typing in the key input element.
    */
-  static handleKeyAutocomplete(e) {
+  static handleKeyInput(e) {
     // Get the input element for the key of the metadata entry
     const keyInputEl = e.target;
     
@@ -9686,7 +9731,7 @@ class MetadataEntry {
     const key = keyInputEl.value?.trim?.();
     
     // Reset helper text, button icon and tooltip content to default values when there is no user input
-    if (typeof key === undefined || key === null || key === '') {
+    if (isEmptyish(key)) {
       helperTextEl.textContent = MetadataEntry.defaultHelperText;
       keyInputEl.placeholder = 'Type to add/edit entry';
       valueInputEl.value = '';
@@ -9694,41 +9739,36 @@ class MetadataEntry {
       typeSelectEl.value = 'no-selection';
       return;
     }
-      
-    // Make sure the player has a Metadata instance
-    const metadata = Player.getMetadata();
-    if (!(metadata instanceof Metadata)) {
-      throw new Error('Metadata instance could not be found on the player!');
-    }
 
     // If the key already exists
-    const existingEntry = metadata.get(key);
+    const existingEntry = Player.getMetadata?.()?.get?.(key);
     const isExistingEntry = existingEntry instanceof MetadataEntry;
-    if (isExistingEntry) {
-      
-      // If the key has a previously recorded value and type
-      const existingValue = existingEntry?.value ?? null;
-      const existingType = existingEntry?.type ?? null;
-      if (existingValue !== null && existingType !== null) {
-      
-        // Fill those values in the input fields as default values
-        keyInputEl.value = key;
-        valueInputEl.value = existingValue;
-        typeSelectEl.value = existingType;
-        
-      }
-      
-    }
-    
-    // Show a warning to the user that the existing value and type will be overwritten if they continue with saving the new entry
-    const infoText = isExistingEntry ? `An entry with key <span class="badge text-bg-warning">${key}</span> already exists. Saving will overwrite the existing values.` : `A new entry with key <span class="badge text-bg-success">${key}</span> will be created.`;
-    
-    helperTextEl.innerHTML = infoText;
+    const existingType = isExistingEntry ? existingEntry.type : null;
+    const existingValue = isExistingEntry ? existingEntry.value : null;
 
+    // Fill the value and type input elements
+    if (isExistingEntry) {
+      const isValueEmpty = isEmptyish(existingValue);
+      valueInputEl.value =  isValueEmpty ? '' : existingValue;
+      valueInputEl.placeholder =  isValueEmpty ? 'Enter value' : existingValue;
+      typeSelectEl.value =  existingType ?? 'no-selection';
+      helperTextEl.innerHTML = `An entry with key <span class="badge text-bg-warning">${key}</span> already exists. Saving will overwrite the existing values.`;
+    } else {
+      valueInputEl.value = '';
+      typeSelectEl.value = 'no-selection';
+      helperTextEl.innerHTML = `A new entry with key <span class="badge text-bg-success">${key}</span> will be created.`;
+    }
 
   }
 
-  static handleValueAutocomplete(e) {
+  static handleValueInputWithDebounce(e) {
+    clearTimeout(MetadataEntry.inputTimeout);
+    MetadataEntry.inputTimeout = setTimeout(() => {
+      MetadataEntry.handleValueInput(e);
+    }, MetadataEntry.inputDebounce); // Debounce time in milliseconds
+  }
+
+  static handleValueInput(e) {
     // Get the input element for the value of the metadata entry
     const valueInputEl = e.target;
     if (!valueInputEl) return;
@@ -9752,11 +9792,8 @@ class MetadataEntry {
     // Get the value input
     const value = valueInputEl.value?.trim?.();
     
-    // Reset helper text, button icon and tooltip content to default values when there is no user input
-    if (typeof value === undefined || value === null || value === '') {
-      helperTextEl.textContent = MetadataEntry.defaultHelperText;
-      return;
-    }
+    // Do nothing when there is no user input
+    if (isEmptyish(value)) return;
 
     // Get the key input
     const key = keyInputEl.value?.trim?.();
@@ -9770,36 +9807,211 @@ class MetadataEntry {
     // Check if the entry for the key already exists and get its type
     const existingEntry = metadata.get(key);
     const isExistingEntry = existingEntry instanceof MetadataEntry;
-    if (isExistingEntry) {
-      const existingType = existingEntry?.type ?? null;
+    if (!isExistingEntry) return;
+    
+    const existingType = existingEntry.type ?? null;
 
-      // Set the type select element to the existing type if it is not already set to that type
-      if (existingEntry.type !== null) {
-        typeSelectEl.value = existingEntry.type;
-      } 
- 
-      // Check if the existing type is categorical 
-      if (MetadataEntry.isCategoricalType(existingType)) {
-        const existingCategories = existingEntry.categories;
+    // Set the type select element to the existing type if it is not already set to that type
+    if (existingType !== null) {
+      typeSelectEl.value = existingType;
+    } 
 
-        // If the entered value is not among the categories for this key, show a warning to the user that it will be added as a new category if they continue with saving the entry.
-        const isNewCategory = !existingCategories?.has?.(value);
-        
-        helperTextEl.innerHTML = isNewCategory ? helperTextEl.innerHTML = `Saving will add <span class="badge text-bg-warning">${value}</span> as a <b>new category</b> to the entry with key <span class="badge text-bg-info">${key}</span>.` : `The value <span class="badge text-bg-success">${value}</span> already exists as a category for the entry with key <span class="badge text-bg-info">${key}</span>.`;
+    // Check if the existing type is categorical 
+    if (!MetadataEntry.isCategoricalType(existingType)) return;
+
+    // If the entered value is not among the categories for this key, show a warning to the user that it will be added as a new category if they continue with saving the entry.
+    const existingCategories = existingEntry.categories;
+    const isNewCategory = !existingCategories?.has?.(value);
+   
+    const newCategoryText = `Saving will add <span class="badge text-bg-warning">${value}</span> as a <b>new category</b> to the entry with key <span class="badge text-bg-info">${key}</span>.`;
+    const existingCategoryText = `The value <span class="badge text-bg-success">${value}</span> already exists as a category for the entry with key <span class="badge text-bg-info">${key}</span>.`;
       
-      }
-      
+    helperTextEl.innerHTML = isNewCategory ? newCategoryText : existingCategoryText;
 
+
+  }
+
+
+  /**
+   * Reset the input fields to the default values.
+   * @param {String[] | undefined} inputEls - Array of input elements to reset. If undefined, all input fields will be reset.
+   * @returns
+   */
+  static resetInputFields(inputEls = ['key', 'value', 'type']) {
+    const keyInputEl = MetadataEntry.keyInputEl;
+    const valueInputEl = MetadataEntry.valueInputEl;
+    const typeSelectEl = MetadataEntry.typeSelectEl;
+    const helperTextEl = MetadataEntry.helperTextEl;
+    if (!keyInputEl || !valueInputEl || !typeSelectEl || !helperTextEl) {
+      showAlertToast('An error occurred while resetting the input fields. Please try again.', 'error');
+      return;
+    } 
+
+    const shouldResetKey = inputEls.includes('key');
+    const shouldResetValue = inputEls.includes('value');
+    const shouldResetType = inputEls.includes('type');
+    const shouldResetAll = inputEls.length === 0 || inputEls.includes('all');
+
+    if (shouldResetKey || shouldResetAll) {
+      keyInputEl.value = '';
+      keyInputEl.placeholder = 'Type to add/edit entry';
+      helperTextEl.textContent = MetadataEntry.defaultHelperText;;
     }
 
+    if (shouldResetValue) {
+      valueInputEl.value = '';
+      valueInputEl.placeholder = 'Enter value';
+    }
 
+    if (shouldResetType) {
+      typeSelectEl.value = 'no-selection'; 
+    }
+
+  }
+
+  /**
+   * Validates the user input for the value of a metadata entry according to the selected type.
+   * @param {*} value 
+   * @param {String} type 
+   * @param {* | undefined} key 
+   * @returns {Boolean | undefined} Returns true if the value is valid for the type, undefined otherwise
+   * @throws {Error} If the value is not valid for the type, an error is thrown with a message that can be shown to the user in a tooltip or popover. The error messages are specific for each type to guide the user in entering valid values for each type.
+   */
+  static validateUserInput(value, type, key) {
+
+    const isBinary = MetadataEntry.isBinaryType(type);
+    const isNumeric = MetadataEntry.isNumericType(type);
+    const isText = MetadataEntry.isTextType(type);
+    const isCategorical = MetadataEntry.isCategoricalType(type);
+
+    const positiveBinaryVal = MetadataEntry.positiveBinaryValue;
+    const negativeBinaryVal = MetadataEntry.negativeBinaryValue;
+
+    const valueInputEl = MetadataEntry.valueInputEl;
+    if (!valueInputEl) {
+      throw new Error('Value input element for metadata entry manipulation could not be found in the DOM!');
+    }
+
+    // Check if the value entered by the user is valid for the selected type
+    if (isBinary) {
+      try {
+        MetadataEntry.parseBinaryInput(value);
+      } catch (error) {
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Invalid Binary Value',
+          content: `Please enter either <span class="badge text-bg-dark">${positiveBinaryVal}</span> or <span class="badge text-bg-dark">${negativeBinaryVal}</span> for the binary type!`,
+          type: 'error',
+          placement: 'bottom'
+        });
+        MetadataEntry.resetInputFields('value');
+        return;
+      }
+    }
+
+    if (isNumeric) {
+      try {
+        MetadataEntry.parseNumericInput(value);
+      } catch (error) {
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Invalid Numeric Value',
+          content: 'Please enter a valid number for the numeric type!',
+          type: 'error',
+          placement: 'bottom'
+        });
+        MetadataEntry.resetInputFields('value');
+        return;
+      }
+    }
+
+    if (isText) {
+      try {
+        MetadataEntry.parseTextInput(value);
+      } catch (error) {
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Invalid Text Value',
+          content: 'Please enter a valid text for the text type! The text should not be empty and should not consist of only whitespace.',
+          type: 'error',
+          placement: 'bottom'
+        });
+        MetadataEntry.resetInputFields('value');
+        return;
+      }
+    }
+
+    if (isCategorical) {
+      try {
+        const parsedValue = MetadataEntry.parseCategoricalInput(value);
+        const existingCategories =  Player.getMetadata()?.get(key)?.categories;
+        const isNewCategory = !existingCategories?.has?.(value);
+
+        // Ask the user to confirm if they want to add the new category if it is a new category
+        if (isNewCategory) {
+
+          const popover = showPopover({
+            domEl: valueInputEl,
+            title: 'New Category',
+            content: `<span class="badge text-bg-warning">${value}</span> is not among the existing categories for the entry with key <span class="badge text-bg-info">${key}</span>. Do you want to add it as a new category?`,
+            type: 'response',
+            placement: 'bottom',
+            onConfirm: MetadataEntry.handleCategoryConfirmationOrCancellation,
+            onCancel: MetadataEntry.handleCategoryConfirmationOrCancellation
+          });
+
+          const popoverEl = popover?.tip;
+          if (!popoverEl) { 
+            showAlertToast('An error occurred while showing the confirmation popover for adding a new category. Please try again.', 'error');
+            return;
+          }
+
+          const confirmBtn = popoverEl.querySelector('.confirm-btn');
+          if (!confirmBtn) {
+            throw new Error('Confirm button for confirming adding new category in the popover could not be found in the DOM!');
+          }
+
+          const cancelBtn = popoverEl.querySelector('.cancel-btn');
+          if (!cancelBtn) {
+            throw new Error('Cancel button for confirming adding new category in the popover could not be found in the DOM!');
+          }
+
+          // Add data attributes to the button element to retrieve it later from the function for confirming adding the new category when the confirm button in the popover is clicked
+          for (const btnEl of [confirmBtn, cancelBtn]) {
+            btnEl.dataset.key = key;
+            btnEl.dataset.value = value;
+          }
+          return;
+        }
+
+      } catch (error) {
+        showPopover({
+          domEl: valueInputEl,
+          title: 'Invalid Categorical Value',
+          content: `Please enter a valid category for the categorical type! ${error.message}`,
+          type: 'error',
+          placement: 'bottom'
+        });
+        MetadataEntry.resetInputFields('value');
+        return;
+      }
+    }
+    return true;
+
+
+  }
+  static handleAddOrEditWithDebounce(e) {
+    clearTimeout(MetadataEntry.inputTimer);
+    MetadataEntry.inputTimeout = setTimeout(() => {
+      MetadataEntry.handleAddOrEdit(e);
+    }, MetadataEntry.inputDebounce); // Debounce time in milliseconds
   }
 
   /**
    * Handle adding new metadata entry or editing an existing one from the UI by the user.
    * @param {Event} event click event on the save button in the metadata table row for adding/editing metadata entries
    */
-  static handleAddOrEditByUser(event) { 
+  static handleAddOrEdit(event) { 
     const inputEl = event.target;
     if (!inputEl) {
       throw new Error('Input element for metadata entry manipulation could not be found in the DOM!');
@@ -9841,156 +10053,80 @@ class MetadataEntry {
     }
 
     // Check if the key exists already in the metadata of the player and get the existing entry if it exists
-    const key = keyInputEl.value?.trim?.() ?? null;
+    const key = keyInputEl.value?.trim?.();
     const existingEntry = metadata.get(key);
     const isExistingEntry = existingEntry instanceof MetadataEntry;
 
-    function resetInputFields() {
-      // Reset the value of input element for the existing entry
-      if (isExistingEntry) {
-        valueInputEl.value = existingEntry.value;
-        valueInputEl.placeholder = existingEntry.value;
-        typeSelectEl.value = existingEntry.type;
-      }
-    }
-
-    // Check if the select element is changed
-    if (inputEl === typeSelectEl) {
-      // Wait until value and key input fields are filled
-      const key = keyInputEl.value?.trim?.() ?? '';
-      const value = valueInputEl.value?.trim?.() ?? '';
-      console.log('selectel')
-      if (key === '' || value === '') return;
-    }
-    
-    // Validate key input
-    if (key === '' || key === null) {
-      showPopover({
-        domEl: keyInputEl,
-        title: 'Missing Key',
-        content: 'Please provide a key for the metadata entry!',
-        type: 'error',
-        placement: 'bottom',
-      });
-      return;
-    }
-
-    // Validate type selection
+    // Get the other user input values
+    const value = valueInputEl.value?.trim?.();
     const type = typeSelectEl.value;
-    if (type === 'no-selection' || typeof type === 'undefined') {
-      showPopover({
-        domEl: typeSelectEl,
-        title: 'No Type Selected',
-        content: 'Please select a type for the metadata entry!',
-        type: 'error',
-        placement: 'bottom'
-      });
-      resetInputFields();
+
+    // Determine which input element is changed and validate the input accordingly.
+    const isTypeChanged = (inputEl === typeSelectEl);
+    const isKeyChanged = (inputEl === keyInputEl);
+    const isValueChanged = (inputEl === valueInputEl);
+
+    // Check if the key, value or type input is empty
+    const isKeyEmpty = isEmptyish(key);
+    const isValueEmpty = isEmptyish(value);
+    const isTypeEmpty = (type === 'no-selection' || typeof type === 'undefined');
+
+    // If the type or value is changed while the key is empty, 
+    //  do nothing and wait for the user to input a key.
+    //  Because a key is necessary to determine which metadata entry should be edited
+    if ((isTypeChanged || isValueChanged) && isKeyEmpty) return;
+
+    // If the key input is an existing key but the value or type is empty, do nothing and wait for the user to input the missing value or type, because both value and type are necessary for creating a new metadata entry or editing an existing metadata entry
+    if (isExistingEntry && (isValueEmpty || isTypeEmpty)) return;
+
+    // If the key input is an existing key but the value or type is changed and both are provided
+    if (isExistingEntry && (isValueChanged || isTypeChanged)) {
+
+      // Check if there is an actual change in the value or type of the existing entry
+      const isNewValue = existingEntry.value !== value;
+      const isNewType = existingEntry.type !== type;
+      if (!isNewValue && !isNewType) return;
+
+      // Try to set and value and type
+      try {
+        
+        // Validate the value-type compatibility
+        if (!MetadataEntry.validateUserInput(value, type, key)) return;
+        
+        existingEntry.setValueAndType(value, type);
+        existingEntry.updateDomEls();
+        
+        showAlertToast(`Entry with key <span class="badge text-bg-primary">${key}</span> updated with <span class="badge text-bg-secondary">${value}</span>:<span class="badge text-bg-dark">${type}</span>`, 'success', 'Entry Updated');
+
+        if (isMainRow) MetadataEntry.resetInputFields();
+        
+      } catch (error) {
+        showPopover({
+          domEl: keyInputEl,
+          title: 'Failed to Update Entry',
+          content: `Existing entry with key <span class="badge text-bg-dark">${key}</span> could not be updated. ${error.message}. Please try again.`,
+          type: 'error',
+          placement: 'left'
+        });
+      }
+
       return;
+
     }
 
-    // Validate value input
-    const value = valueInputEl.value?.trim?.() ?? null; 
-    if (value === '' || value === null) {
-      showPopover({
-        domEl: valueInputEl,
-        title: 'Missing Value',
-        content: 'Please provide a value for the metadata entry!',
-        type: 'error',
-        placement: 'bottom',
-      });
-      resetInputFields();
-      return;
-    }
-  
-
-    const isBinary = MetadataEntry.isBinaryType(type);
-    const isNumeric = MetadataEntry.isNumericType(type);
-    const isText = MetadataEntry.isTextType(type);
-    const isCategorical = MetadataEntry.isCategoricalType(type);
-
-    const positiveBinaryVal = MetadataEntry.positiveBinaryValue;
-    const negativeBinaryVal = MetadataEntry.negativeBinaryValue;
-
-    // Check if the value entered by the user is valid for the selected type
-    if (isBinary) {
-      try {
-        MetadataEntry.parseBinaryInput(value);
-      } catch (error) {
-        showPopover({
-          domEl: valueInputEl,
-          title: 'Invalid Binary Value',
-          content: `Please enter either <span class="badge text-bg-dark">${positiveBinaryVal}</span> or <span class="badge text-bg-dark">${negativeBinaryVal}</span> for the binary type!`,
-          type: 'error',
-          placement: 'bottom'
-        });
-        resetInputFields();
-        return;
-      }
-    }
-
-    if (isNumeric) {
-      try {
-        MetadataEntry.parseNumericInput(value);
-      } catch (error) {
-        showPopover({
-          domEl: valueInputEl,
-          title: 'Invalid Numeric Value',
-          content: 'Please enter a valid number for the numeric type!',
-          type: 'error',
-          placement: 'bottom'
-        });
-        resetInputFields();
-        return;
-      }
-    }
-
-    if (isText) {
-      try {
-        MetadataEntry.parseTextInput(value);
-      } catch (error) {
-        showPopover({
-          domEl: valueInputEl,
-          title: 'Invalid Text Value',
-          content: 'Please enter a valid text for the text type! The text should not be empty and should not consist of only whitespace.',
-          type: 'error',
-          placement: 'bottom'
-        });
-        resetInputFields();
-        return;
-      }
-    }
-
-    if (isCategorical) {
-      try {
-        MetadataEntry.parseCategoricalInput(value);
-      } catch (error) {
-        showPopover({
-          domEl: valueInputEl,
-          title: 'Invalid Categorical Value',
-          content: 'Please enter a valid category for the categorical type!',
-          type: 'error',
-          placement: 'bottom'
-        });
-        resetInputFields();
-        return;
-      }
-    }
-
-
-    // If the key does not exist and main save button is clicked, create a new MetadataEntry instance and add it to the Metadata instance of the player
-    if (!(isExistingEntry) && isMainRow) {
+    // If the key input is new but value or type is empty, do nothing and wait for the user to input the missing value or type, because both value and type are necessary for creating a new metadata entry
+    if (!isExistingEntry && (isValueEmpty || isTypeEmpty)) return;
       
+    // If the key input is new and both value and type are provided
+    if (!isExistingEntry && (isValueChanged || isTypeChanged) && !isValueEmpty && !isTypeEmpty && isMainRow) {
+
+      // Validate the value-type compatibility
+      if (!MetadataEntry.validateUserInput(value, type, key)) return;
+
       // Create a new MetadataEntry instance and add it to the Metadata instance of the player
-      try {
+      try { 
         const newEntry = new MetadataEntry(key, value, type);
         metadata.add(newEntry);
-        
-        // Reset the input fields for the next entry to be added by the user
-        keyInputEl.value = '';
-        valueInputEl.value = '';
-        typeSelectEl.value = 'no-selection';
-        helperTextEl.textContent = MetadataEntry.defaultHelperText;
 
         showAlertToast(`Entry created with <span class="badge text-bg-primary">${key}</span>:<span class="badge text-bg-secondary">${value}</span>:<span class="badge text-bg-dark">${type}</span>`, 'success', 'Entry Created');
 
@@ -10002,12 +10138,17 @@ class MetadataEntry {
           type: 'error',
           placement: 'left'
         });
+
       }
+
+      // reset the input fields to default values for the next entry to be added by the user
+      MetadataEntry.resetInputFields();
       return;
+
     }
 
     // If the key does not exist and the save button in a row is clicked, show an error message to the user that they cannot add a new entry from the table rows and should use the first row of the table for adding new entries.
-    if (!(isExistingEntry) && !isMainRow) {
+    if (!isExistingEntry && !isMainRow) {
       showPopover({
         domEl: keyInputEl,
         title: 'Entry Not Found',
@@ -10015,49 +10156,84 @@ class MetadataEntry {
         type: 'error',
         placement: 'left',
       });
+      MetadataEntry.resetInputFields();
       return;
     }
       
-    // If the key already exists, update the existing MetadataEntry instance with the new value and type
-    if (isExistingEntry) {
+   
+  }
 
-      // Check if there is an actual change in the value or type of the existing entry
-      const isValueChanged = existingEntry.value !== value;
-      const isTypeChanged = existingEntry.type !== type;
-      if (!isValueChanged && !isTypeChanged) return;
-
-      try {
-        existingEntry.setValueAndType(value, type);
-        existingEntry.updateDomEls();
-        
-        // If the main save button is clicked, reset the input fields for the next entry to be added by the user
-        if (isMainRow) {
-          keyInputEl.value = '';
-          valueInputEl.value = '';
-          valueInputEl.placeholder = 'Enter value';
-          typeSelectEl.value = 'no-selection';
-        }
-
-        showAlertToast(`Entry with key <span class="badge text-bg-primary">${key}</span> updated with <span class="badge text-bg-secondary">${value}</span>:<span class="badge text-bg-dark">${type}</span>`, 'success', 'Entry Updated');
-        
-      } catch (error) {
-        showPopover({
-          domEl: keyInputEl,
-          title: 'Failed to Update Entry',
-          content: `Existing entry with key <span class="badge text-bg-dark">${key}</span> could not be updated. ${error.message}. Please try again.`,
-          type: 'error',
-          placement: 'left'
-        });
-        // Reset the input fields to the existing value and type of the entry
-        valueInputEl.value = existingEntry.value;
-        typeSelectEl.value = existingEntry.type;
-      }
-      // Reset the helper text
-      helperTextEl.textContent = MetadataEntry.defaultHelperText;
+  static handleCategoryConfirmationOrCancellation(e) {
+    const btnEl = e.target;
+    if (!btnEl) {
+      showAlertToast('Failed to add/edit category. Button element could not be found! Please try again.', 'error');
       return;
     }
 
+    // Determine whether the confirm button or cancel button in the popover for confirming adding a new category is clicked
+    const isConfirmBtn = btnEl.classList?.contains('confirm-btn');
+    const isCancelBtn = btnEl.classList?.contains('cancel-btn');
+    if (!isConfirmBtn && !isCancelBtn) {
+      showAlertToast('Failed to add new category. Confirm or cancel button could not be found! Please try again.', 'error');
+      return;
+    }
+
+    // Get the popover instance for the value input element to dispose it later after adding the new category successfully or when an error occurs
+    const valueInputEl = document.querySelector('input[name="metadata-value"]');
+    if (!valueInputEl) {
+      showAlertToast('Failed to add new category. Value input element could not be found in the DOM! Please try again.', 'error');
+      return;
+    }
+
+    // Get the popover instance for the value input element to dispose it later after adding the new category successfully or when an error occurs
+    const popover = bootstrap.Popover.getInstance(valueInputEl);
+
+    // If the cancel button is clicked, just dispose the popover and reset the value input field and helper text to default values without adding the new category
+    if (isCancelBtn) {
+      MetadataEntry.resetInputFields('value');
+      popover?.dispose();
+      return;
+    }
+
+    // Get the key and value for the new category to be added from the data attributes of the confirm button element
+    const key = btnEl.dataset.key;
+    const value = btnEl.dataset.value;
+    if (!key || !value || isEmptyish(key) || isEmptyish(value)) {
+      showAlertToast('Failed to add new category. Missing key or value for the new category. Please try again.', 'error');
+      return;
+    }
+
+    // Make sure the player has a Metadata instance
+    const metadata = Player.getMetadata();
+    if (!(metadata instanceof Metadata)) {
+      showAlertToast('Failed to add new category. No metadata instance could be found on the player! Please make sure a video is loaded and try again.', 'error');
+      return;
+    } 
+
+    // Dispose the popover
+    popover?.dispose();
+
+    // Reset the value input field and helper text to default values
+    valueInputEl.value = '';
+    MetadataEntry.helperTextEl.textContent = MetadataEntry.defaultHelperText;   
+
+    if (isConfirmBtn) {
+      // Try to add or update the entry
+      try {
+        metadata.addOrUpdate(key, value, 'categorical');
+        showAlertToast(`Successfully added <span class="badge text-bg-warning">${value}</span> as a new category for entry with key <span class="badge text-bg-dark">${key}</span>.`, 'success');
+      } catch (error) {
+        console.error(error);
+        showAlertToast(`Failed to add <span class="badge text-bg-warning">${value}</span> as a new category for entry with key <span class="badge text-bg-dark">${key}</span>. Please try again.`, 'error');
+      }
+      
+    }
+    
+    MetadataEntry.resetInputFields();
+
+
   }
+
 
   /**
    * Handles the deletion of a metadata entry by the user.
@@ -10153,13 +10329,14 @@ class Metadata {
    * Updates the metadata entries based on the given file response object. The file response object is expected to have a specific structure where each key corresponds to a metadata entry key and its value is an object containing the key,value and type of the metadata entry.
    * @param {Object} fileResponse 
    */
-  updateFromObject(fileResponse) {
-    if (typeof fileResponse === 'undefined' || fileResponse === null) {
-      throw new Error(`Invalid file response for updating metadata: ${fileResponse}`);
+  updateFromObject(obj) {
+    if (typeof obj === 'undefined' || obj === null || !(obj instanceof Object)) {
+      throw new Error(`Invalid input for updating metadata: ${obj}`);
     }
-    Object.entries(fileResponse).forEach(([key, { value, type }]) => {
+
+    Object.entries(obj).forEach(([key, { value, type, categories }]) => {
       try {
-        this.addOrUpdate(key, value, type);
+        this.addOrUpdate(key, value, type, categories);
       } catch (error) {
         console.error(`Error occurred while updating metadata for key: ${key}`, error);
       }
@@ -10178,16 +10355,17 @@ class Metadata {
    * Adds a new metadata entry or updates an existing one. If an entry with the given key already exists, its value and type will be updated. If no entry with the given key exists, a new entry will be created and added to the Metadata instance. The type parameter is optional for updating existing entries, if not provided, the type of the existing entry will remain unchanged. However, when adding a new entry, the type parameter is required.
    * @param {*} key 
    * @param {*} value 
-   * @param {String | undefined} type 
+   * @param {String} type 
+   * @param {Set<String> | Array<String> | undefined} categories Optional parameter for categorical metadata entries to specify the set of categories for the entry.
    * @returns {MetadataEntry | undefined} The added or updated MetadataEntry instance
    * @throws {Error} If the type parameter is not provided when adding a new entry or if there is an error while adding or updating the metadata entry
    */
-  addOrUpdate(key, value, type) {
+  addOrUpdate(key, value, type, categories) {
     try {
       if (this.entries.has(key)) {
-        this.update(key, value, type);
+        this.update(key, value, type, categories);
       } else {
-        this.add(new MetadataEntry(key, value, type));
+        this.add(new MetadataEntry(key, value, type, categories));
       }
       return this.entries.get(key);
     } catch (error) {
@@ -10206,8 +10384,7 @@ class Metadata {
     }
 
     const key = metadataEntry.key;
-    
-    if (typeof key === 'undefined' || key === '' || key === null) {
+    if (isEmptyish(key)) {
       throw new Error(`Invalid key for metadata entry: ${key}`);
     }
 
@@ -10218,7 +10395,7 @@ class Metadata {
     try {
       this.entries.set(key, metadataEntry);
       this.entries.get(key)?.updateDomEls?.();
-      Config.updateVideoMetadata();
+      this.saveToConfig?.();
     } catch (error) {
       throw new Error(`Failed to add metadata entry for key: ${key}`);
     }
@@ -10240,7 +10417,7 @@ class Metadata {
       throw new Error(`No metadata entry found for key: ${key}`);
     }
 
-    Config.updateVideoMetadata();
+    this.saveToConfig?.();
   }
 
   get timestamp() {
@@ -10292,21 +10469,30 @@ class Metadata {
    * @param {*} key 
    * @param {*} value 
    * @param {String | undefined} type Optional parameter to update the type of the metadata entry if needed. If not provided, the type of the metadata entry will remain unchanged.
+   * @param {Set<String> | Array<String> | undefined} categories Optional parameter for categorical metadata entries to specify the set of categories for the entry.
+   * @returns {MetadataEntry} The updated MetadataEntry instance
    * @throws {Error} If there is no existing metadata entry with the given key or if the new value is not valid for the type of the metadata entry 
    */
-  update(key, value, type) {
+  update(key, value, type, categories) {
     if (!this.has(key)) {
       throw new Error(`No metadata entry found for key: ${key}`);
     }
 
+    const metadataEntry = this.entries.get(key);
+    if (!(metadataEntry instanceof MetadataEntry)) {
+      throw new Error(`Metadata entry for key: ${key} is not an instance of MetadataEntry!`);
+    }
+
+    const isCategorical = MetadataEntry.isCategoricalType(type ?? metadataEntry.type);
+
     try {
-      const metadataEntry = this.entries.get(key);
       metadataEntry.value = value;
-      if (typeof type !== 'undefined') {
-        metadataEntry.type = type;
+      metadataEntry.type = type ?? metadataEntry.type;
+      if (isCategorical) {
+        metadataEntry.addCategory(categories);
       }
       metadataEntry.updateDomEls();
-      Config.updateVideoMetadata();
+      this.saveToConfig?.();  // Save the updated metadata to the config file after updating the entry
     } catch (error) {
       showAlertToast(
         `Failed to update metadata entry for key <span class="badge text-bg-dark">${key}</span> with value <span class="badge text-bg-dark">${value}</span>!`,
@@ -10315,6 +10501,8 @@ class Metadata {
       );
       throw new Error(error);
     }
+
+    return metadataEntry;
 
   }
 
@@ -10380,10 +10568,39 @@ class Metadata {
     this.update('classColors', Player.getClassColors() ?? []);
   }
 
+  /** 
+   * Converts the metadata entries from MetadataEntry instances to plain JS objects for easier serialization when saving to file or sending to the backend. 
+   * @returns {Object} Has the following structure:
+   * {
+   *    keyN: { key: keyN, value: valueN, type: typeN, categories: [cat1, ..., catN] or undefined if not categorical },
+   *    
+   */
   toObject() {
     const obj = {};
-    this.entries.forEach((entry, key) => obj[key] = entry?.toObject?.());
+
+    this.entries.forEach((metadataEntry, key) => {
+      if (!(metadataEntry instanceof MetadataEntry)) {
+        console.warn(`Metadata entry for key ${key} is not an instance of MetadataEntry class! Skipping this entry in the conversion to object.`);
+        return;
+      }
+
+      if (typeof key === 'undefined' || key === '' || key === null) {
+        console.warn(`Invalid key for metadata entry: ${key}! Skipping this entry in the conversion to object.`);
+        return;
+      }
+
+      const entryObj = metadataEntry.toObject();
+      if (typeof entryObj === 'undefined' || entryObj === null || !(entryObj instanceof Object)) {
+        throw new Error(`Invalid object for metadata entry: ${key}! Skipping this entry in the conversion to object.`);
+        return;
+      }
+
+      obj[key] = entryObj;
+
+    });
+
     return obj;
+
   }
 
   /**
@@ -10426,6 +10643,18 @@ class Metadata {
     const response = await window.electronAPI.exportMetadataToCSV(entriesObjArr, this.videoName);
 
     return response;
+  }
+
+
+  static async saveToConfig() {
+    try {
+      Config.videoMetadata = this.toObject?.();
+      const response = await Config.saveToFile();
+      return response;
+    } catch (error) {
+      console.error('Error occurred while saving metadata to config file.', error);
+      throw error;
+    }
   }
 
 
@@ -10506,7 +10735,7 @@ class Metadata {
 
     // Update the video metadata key-value-type attributes in the player config for easier access across different videos
     try {
-      Config.videoMetadata = metadata.toObject?.();
+      Config.videoMetadata = metadata;
       const saveResponse = await Config.saveToFile();
       if (!saveResponse) {
         console.error('Failed to save updated player config with video metadata after importing metadata entries from YAML');
@@ -12531,15 +12760,15 @@ class Config {
 
   static set videoMetadata(obj) {
     if (obj === null || typeof obj === 'undefined') {
-      throw new Error('Invalid video metadata input! Video metadata must be an object or null/undefined to clear the metadata.');
-    };
-    
+      console.warn('Cannot update video metadata: No video metadata provided or invalid video metadata!');
+      return;
+    }
+
     if (obj instanceof Metadata) {
       Config.#videoMetadata = obj.toObject?.();
     } else if (obj instanceof Object) {
       Config.#videoMetadata = obj;
     }
-
 
   }
 
@@ -12696,22 +12925,6 @@ class Config {
     Config.#username = val?.toString();
   }
 
-  static updateVideoMetadata() {
-    try {
-      Config.videoMetadata = Player.getMetadata?.()?.toObject?.();
-      Config.saveToFile().then(response => {
-        if (!response) {
-          showAlertToast('Please try again.', 'error', 'Failed to Update Video Metadata');
-        } else {
-          showAlertToast('Video metadata updated in config file!', 'success');
-        }
-      });
-    } catch (error) {
-      console.error('Failed to update video metadata in config:', error);
-    }
-  }
-
-
   static toObject() {
     return {
       classIds: Config.classIds,
@@ -12743,6 +12956,8 @@ class Config {
     return response;
     
   }
+
+ 
 
 }
 

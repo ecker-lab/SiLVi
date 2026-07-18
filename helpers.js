@@ -116,12 +116,15 @@ function showAlertToast(message, type, title) {
  * @param {String | undefined} options.customClass Class name for styling. Overrides "type" if both are given. 
  * @param {Number[] | undefined} options.offset Offset of the popover relative to its target [skidding, distance]
  * @param {String | undefined} options.type Type of the alert for styling. Should be either "success", "error", "info", "warning" or "response". The default value is "info". If "response" is selected, it will show confirmation/cancellation buttons to get user feedback and ignore hideTimeout option. 
+ * @param {Function | undefined} options.onConfirm Callback function for confirm button if type is "response"
+ * @param {Function | undefined} options.onCancel Callback function for cancel button if type is "response"
+ * @returns {bootstrap.Popover} The created popover instance
  */
 function showPopover(options) {
   const { 
     onCanvas = false, x, y, title, content,
     placement, hideTimeout, offset, 
-    customClass, type
+    customClass, type, onConfirm, onCancel
   } = options;
 
   // Determine the DOM element depending on whether the popover should be shown on the main canvas
@@ -183,12 +186,12 @@ function showPopover(options) {
 
   // Add confirmation/cancellation buttons to the content if they should be shown
   const isResponse = type === 'response';
-  const responseBtnHtml = `<div id="new-bounding-box-response-div" class="mt-1 d-flex justify-content-start align-items-center"><a role="button" class="btn btn-sm btn-secondary me-1 confirm-btn">Dismiss</a><a role="button" class="btn btn-sm btn-success dismiss-btn">Confirm</a></div>`
+  // const responseBtnHtml = `<div class="mt-1 d-flex justify-content-start align-items-center"><a role="button" class="btn btn-sm btn-secondary me-1 cancel-btn">Cancel</a><a role="button" class="btn btn-sm btn-danger confirm-btn">Confirm</a></div>`
 
   // Create the Popover instance
   const popover = new bootstrap.Popover(domEl, {
     container: 'body',
-    content: content + (isResponse ? responseBtnHtml : ''),
+    content: content,
     placement: placement ?? 'top',
     title: title,
     customClass: customClass ?? popoverClass,
@@ -200,12 +203,49 @@ function showPopover(options) {
   // Show the popover
   popover.show();
 
+  // If user response is needed, add event listeners to the buttons and set the content of the popover to include the buttons
+  if (isResponse) {
+
+    const popoverEl = popover?.tip;
+    console.log('Popover element for response type popover:', popoverEl);
+    const popoverBody = popoverEl?.querySelector('.popover-body');
+    
+    const btnDiv = document.createElement('div');
+    btnDiv.classList.add('mt-1', 'd-flex', 'justify-content-start', 'align-items-center');
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.setAttribute('role', 'button');
+    cancelBtn.classList.add('btn', 'btn-sm', 'btn-secondary', 'me-1', 'cancel-btn');
+    cancelBtn.textContent = 'Cancel';
+    
+    const confirmBtn = document.createElement('button');
+    confirmBtn.setAttribute('role', 'button');
+    confirmBtn.classList.add('btn', 'btn-sm', 'btn-danger', 'confirm-btn');
+    confirmBtn.textContent = 'Confirm';
+    btnDiv.append(cancelBtn, confirmBtn);
+    popoverBody.append(btnDiv);
+
+    if (typeof onConfirm === 'function') {
+      confirmBtn.removeEventListener('click', onConfirm); // Remove previous event listener if exists to prevent duplication
+      confirmBtn.addEventListener('click', onConfirm);
+    }
+
+    if (typeof onCancel === 'function') {
+      cancelBtn.removeEventListener('click', onCancel); // Remove previous event listener if exists to prevent duplication
+      cancelBtn.addEventListener('click', onCancel);
+    }
+  }
+  
+  
+
   // Hide the popover if user is not expected to interact with the popover
   if (!isResponse) {
     setTimeout(() => {
       popover.hide();
     }, hideTimeout ?? 3000);
   }
+
+  return popover;
   
 }
 
@@ -4732,6 +4772,33 @@ function getRandomColors(numColor) {
 
 }
 
+/**
+ * Checks if a value is null or undefined
+ * @param {*} value 
+ * @returns {Boolean}
+ */
+function isNullish(value) {
+  return value === null || typeof value === 'undefined';
+}
+
+/**
+ * Checks if a value is an empty string or null or undefined
+ * @param {*} value 
+ * @returns {Boolean}
+ */
+function isEmptyish(value) {
+  return isNullish(value) || (typeof value === 'string' && value?.trim() === '');
+}
+
+/**
+ * Checks if a value is a Set or Array
+ * @param {Set | Array} value 
+ * @returns {Boolean}
+ */
+function isSetOrArray(value) {
+  return value instanceof Set || Array.isArray(value);
+}
+
 export {
   getFrameFromVideo, 
   // createSecondaryVideoDivs,  
@@ -4775,5 +4842,8 @@ export {
   showProcessIndicator,
   hideProcessIndicator,
   getRandomColors,
-  updateClassEls
+  updateClassEls,
+  isNullish,
+  isSetOrArray,
+  isEmptyish,
 }
