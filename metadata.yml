@@ -1,0 +1,118 @@
+categorical:  # Categorical features represent discrete categories or groups. 
+  age_group:  # This is the category description corresponding to the column name in the dataset.
+    - young # First categorical value for the age group feature corresponding to one of the possible values in age_group column in the dataset.
+    - adult # Second categorical value for the age group feature.
+  observation:
+    - video
+    - image
+  HD:
+    - HD01
+    - HD02
+    - HD03
+    - HD04
+    - HD05
+    - HD06
+    - HD07
+    - HD13
+  tool_material: 
+    - grass
+    - stone 
+    - wood_fresh 
+    - wood_old 
+    - bamboo 
+    - unsure
+  other_material:
+    - grass
+    - stone
+    - wood_fresh
+    - wood_old
+    - bamboo
+    - liana
+    - unsure
+  targeting:
+    - algae
+    - ant_fishing
+    - path
+    - termites
+  species:
+    - troglodytes 
+  location:
+    - A
+    - B
+    - C
+    - D 
+    - E 
+    - F
+    - G
+    - H
+    - J
+    - K
+    - L
+    - M
+    - N
+    - O
+    - Q
+    - V
+    - X
+binary: # Binary features have only two possible values, which can be answered with yes/no.
+  - young_involved # This corresponds to the column name in the dataset, and the values would be yes or no based on whether a young individual was involved in the gesture.
+  - adult_involved 
+  - tool_use
+  - tool_reuse
+  - obscured
+  - certainty
+  - health_issues
+  - young_involved
+  - young_tool_use
+  - gaze_then_attempt
+  - tool_manufactured
+  - tool_carrying
+  - leave_tool
+  - arrive_with_tool
+  - arrive_with_multiple_tools
+  - fishing_algae_with_hand
+  - inspect_pool/algae
+  - clearing_water
+  - drinking_behavior
+  - head_bop
+  - tool_transfer
+  - food_transfer
+  - peering_behavior
+  - begging_behavior
+  - gesture
+  - social_play_aggression
+  - feeding
+  - vocalization
+  - bipedal
+  - baboon_chimp_interaction
+  - potential_ID_clip
+  - special_activity
+numerical: # Numerical features represent measurable quantities and can take on a wide range of values.
+  - temperature
+  - time_of_gesture
+  - object_detected
+  - adults_total
+  - adults_male
+  - adults_female
+  - adults_female_ES
+  - adults_unknown_sex
+  - SA_total
+  - SA_male
+  - SA_female
+  - SA_female_ES
+  - SA_unknown_sex
+  - juveniles_total
+  - juveniles_male
+  - juveniles_female
+  - juveniles_unknown
+  - infants_total
+  - time_of_gesture
+text: # Text features consist of unstructured text data, such as descriptions or comments.
+  - comments_gesture
+  - comments_interaction
+  - comments_special_activity
+  - comments_general
+  - individual_IDs
+  - upload_folder_name
+  - upload_file_name
+
