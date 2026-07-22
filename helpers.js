@@ -4773,7 +4773,7 @@ function getRandomColors(numColor) {
 }
 
 /**
- * Checks if a value is null or undefined
+ * Checks if a value is either null or undefined
  * @param {*} value 
  * @returns {Boolean}
  */
@@ -4782,7 +4782,7 @@ function isNullish(value) {
 }
 
 /**
- * Checks if a value is an empty string or null or undefined
+ * Checks if a value is either an empty string, null or undefined
  * @param {*} value 
  * @returns {Boolean}
  */

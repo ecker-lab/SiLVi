@@ -430,7 +430,7 @@ video {
   display: block;
   width: 100%;
   overflow-y: auto;
-  max-height: 200px;    
+  max-height: 300px;    
 }
 
 .hotkey-tooltip {

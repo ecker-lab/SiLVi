@@ -9032,6 +9032,16 @@ class MetadataEntry {
       // If the optional categories argument is not provided, initialize it as an empty set to avoid errors when adding categories later.
       if (isNullish(categories)) {
         this._categories = new Set(); 
+        
+        // Try to add the value as a category to the set of categories
+        try {
+          const parsedCategory = MetadataEntry.parseCategoricalInput(this._value);
+          this._categories.add(parsedCategory);
+        } catch (error) {
+          console.warn(`Invalid category for categorical metadata entry: ${this._value}. This category will be ignored.`);
+          showAlertToast(`Invalid category for categorical metadata entry: ${this._value}. This category will be ignored.`, 'warning');
+        }
+
       } else { 
         try {
           this.categories = categories; // Use the setter to add the categories and check if they are valid
@@ -9165,6 +9175,7 @@ class MetadataEntry {
 
   }
 
+
   /**
    * Parses the input value according to the type. If the value is not valid for the type, an error is thrown.
    * @param {*} value 
@@ -9197,13 +9208,13 @@ class MetadataEntry {
   /**
    * Parses the input value to a categorical value. If the value cannot be parsed to a categorical value, an error is thrown. Categorical values are represented as strings and can be added to the categories set of the MetadataEntry instance.
    * @param {String | Number | null | undefined} value 
-   * @returns {String | null} Parsed categorical value or an error if the value cannot be parsed to a categorical value
+   * @returns {String} Parsed categorical value or an error if the value cannot be parsed to a categorical value
    * @throws {Error} If the value is not a valid categorical value for a categorical metadata entry
    */
   static parseCategoricalInput(value) {
     // Return null for nullish values (null or undefined) because they are considered valid for all types and can be used to represent missing values.
     if (isNullish(value)) {
-      return null;
+      throw new Error(`Invalid value for categorical metadata entry: ${value}`);
     }
 
     // If the value is not a string, try to convert it to a string. 
@@ -9211,6 +9222,7 @@ class MetadataEntry {
     if (typeof value !== 'string') {
       try {
         const parsedValue = value.toString();
+        return parsedValue.trim();
       } catch (error) {
         throw new Error(`Invalid value for categorical metadata entry: ${value}`);
       }
@@ -9249,12 +9261,12 @@ class MetadataEntry {
 
     const positiveVal = MetadataEntry.positiveBinaryValue;
     const negativeVal = MetadataEntry.negativeBinaryValue;
-f
+
     if (typeof value === 'boolean') {
       return value ? positiveVal : negativeVal;
     }
 
-    const parsedValue = value.toString().trim().toLowerCase();
+    const parsedValue = value?.toString?.().trim?.().toLowerCase?.();
     if (![positiveVal, negativeVal].includes(parsedValue)) {
       throw new Error(`Invalid value for binary metadata entry: ${value}`);
     }
@@ -9349,7 +9361,7 @@ f
 
   /**
    * Adds categories to the existing categories of a categorical metadata entry. If the metadata entry is not of type categorical, an error is thrown.
-   * @param  {...any} categories 
+   * @param  {...*} categories 
    * @throws {Error} If the metadata entry is not of type categorical or if any of the input categories are not valid for a categorical metadata entry
    */
   addCategory(...categories) {
@@ -9357,16 +9369,28 @@ f
       throw new Error(`Cannot add category to metadata entry of type ${this.type}`);
     }
 
-    if (isNullish(categories) || categories.length === 0) {
-      console.warn(`Trying to add nullish or empty category/categories ${categories} to categorical metadata entry. No category will be added.`);
-      return;
-    }
+    // if (isNullish(categories) || categories.length === 0) {
+    //   console.warn(`Trying to add nullish or empty category/categories ${categories} to categorical metadata entry. No category will be added.`);
+    //   return;
+    // }
 
+    // Filter out nullish or empty categories
     const filteredCategories = categories.filter(category => !isEmptyish(category));
 
-    filteredCategories.forEach(category => {
-      this._categories?.add?.(category);
-    });
+    // If no valid categories are provided, add the current value as a category
+    if (filteredCategories.length === 0) {
+      this._categories?.add?.(this.value);
+    } else {
+      filteredCategories.forEach(category => {
+        try {
+          const parsedCategory = MetadataEntry.parseCategoricalInput(category);
+          this._categories?.add?.(parsedCategory);
+        } catch (error) {
+          console.warn(`Invalid category for categorical metadata entry: ${category}. This category will be ignored.`);
+          showAlertToast(`Invalid category for categorical metadata entry: ${category}. This category will be ignored.`, 'warning');
+        }
+      }); 
+    }
 
     this.updateDomEls();
 
@@ -9515,22 +9539,22 @@ f
       valueOptionEl.dataset.type = type;
     };
 
-    // If the entry is of categorical type, also add the different categories as options in the value datalist for autocompletion when adding/editing categorical metadata entries
-    if (MetadataEntry.isCategoricalType(type)) {
-      this.categories?.forEach?.(category => {
-        let categoryOptionEl = valueDatalist.querySelector(`option[value="${category}"]`);
-        if (!categoryOptionEl) {
-          categoryOptionEl = document.createElement('option');
-          valueDatalist.append(categoryOptionEl);
-        }
-        categoryOptionEl.value = category;
-        categoryOptionEl.text = type;
-        categoryOptionEl.dataset.type = type;
+    // // If the entry is of categorical type, also add the different categories as options in the value datalist for autocompletion when adding/editing categorical metadata entries
+    // if (MetadataEntry.isCategoricalType(type)) {
+    //   this.categories?.forEach?.(category => {
+    //     let categoryOptionEl = valueDatalist.querySelector(`option[value="${category}"]`);
+    //     if (!categoryOptionEl) {
+    //       categoryOptionEl = document.createElement('option');
+    //       valueDatalist.append(categoryOptionEl);
+    //     }
+    //     categoryOptionEl.value = category;
+    //     categoryOptionEl.text = type;
+    //     categoryOptionEl.dataset.type = type;
 
-        // Add a data attribute to the option element to link it to the key of the categorical metadata entry it belongs to. This can be used later to determine which categories belong to which categorical metadata entry and to delete the relevant category options when a categorical metadata entry is deleted.
-        categoryOptionEl.dataset.key = key;
-      });
-    }
+    //     // Add a data attribute to the option element to link it to the key of the categorical metadata entry it belongs to. This can be used later to determine which categories belong to which categorical metadata entry and to delete the relevant category options when a categorical metadata entry is deleted.
+    //     categoryOptionEl.dataset.key = key;
+    //   });
+    // }
 
     // Get the table elements
     const tableEl = document.getElementById(Player.metadataTableId);
@@ -9643,8 +9667,10 @@ f
       valueInputEl.addEventListener('input', MetadataEntry.handleValueInputWithDebounce);
       valueInputEl.addEventListener('change', MetadataEntry.handleAddOrEdit);
       
-      valueInputEl.addEventListener('focus', Player.userIsTyping);
-      valueInputEl.addEventListener('blur', Player.userStoppedTyping);
+      // valueInputEl.addEventListener('focus', Player.userIsTyping);
+      valueInputEl.addEventListener('focus', MetadataEntry.handleValueInputFocus);
+      // valueInputEl.addEventListener('blur', Player.userStoppedTyping);
+      valueInputEl.addEventListener('blur', MetadataEntry.handleValueInputBlur);
 
       typeSelectEl.addEventListener('change', MetadataEntry.handleAddOrEdit);
       
@@ -9768,11 +9794,168 @@ f
     }, MetadataEntry.inputDebounce); // Debounce time in milliseconds
   }
 
+  /**
+   * Handles the value datalist options and helper text when the value input element for a metadata entry is focused. This is done to prevent the user from selecting a value that is not compatible with the existing type of the metadata entry. It only changes the value datalist options and helper text for categorical and binary types, because for all other types, any value is valid. For categorical types, the existing categories for the key are added to the value datalist for autocompletion when the user is adding/editing the value for that key. For binary types, only the positive and negative values are added to the value datalist for autocompletion when the user is adding/editing the value for that key.
+   * @param {FocusEvent} e Focus Event
+   * @throws {Error} If the value input element, key input element, type select element, row element or helper text element could not be found in the DOM
+   */
+  static handleValueInputFocus(e) {
+    // Player.userIsTyping();
+    const valueDatalist = document.getElementById('metadata-value-datalist');
+    if (!valueDatalist) return; 
+
+    // Get the element for displaying helper text under the key input element
+    const helperTextEl = MetadataEntry.helperTextEl
+    if (!helperTextEl) {
+      throw new Error('Helper text element for key input could not be found in the DOM!');
+    }
+
+    // Make sure the input element for the value of the metadata entry exists in the DOM
+    const valueInputEl = e.target;
+    if (!valueInputEl) return;
+    if (valueInputEl.getAttribute('name') !== 'metadata-value') return;
+
+    // Get the row element which is used for adding/editing metadata entries by the user
+    const rowEl = valueInputEl.closest('tr');
+    if (!rowEl) {
+      throw new Error('Row element for metadata entry manipulation could not be found in the DOM!');
+    }
+
+    // Get the key input and type select elements for the metadata entry
+    const keyInputEl = rowEl.querySelector('input[name="metadata-key"]');
+    const typeSelectEl = rowEl.querySelector('select');
+    if (!keyInputEl || !typeSelectEl) {
+      throw new Error('Key input or type select element for metadata entry manipulation could not be found in the DOM!');
+    } 
+
+    // Get the key input value
+    const key = keyInputEl.value?.trim?.();
+
+    // Make sure the player has a Metadata instance
+    const metadata = Player.getMetadata();
+    if (!(metadata instanceof Metadata)) {
+      throw new Error('Metadata instance could not be found on the player!');
+    }
+
+    // Check if the entry for the key already exists and get its type
+    const entry = metadata.get(key);
+    const isExistingEntry = entry instanceof MetadataEntry;
+    if (!isExistingEntry) return;
+
+    // Get the type of the existing entry
+    const type = entry.type ?? null;
+
+    // Set the type select element to the existing type if it is not already set to that type
+    if (!isNullish(type)) {
+      typeSelectEl.value = type;
+    }
+
+    const isBinary = MetadataEntry.isBinaryType(type);
+    const isCategorical = MetadataEntry.isCategoricalType(type);
+
+    // If the existing type is not binary or categorical, return early because all values are valid for all other types and no changes to the value datalist options or helper text are necessary.
+    // if (!(isBinary || isCategorical)) {
+    //   optionEls.forEach(optionEl => optionEl.hidden = false);
+    //   return;
+    // }
+
+    // Clear the value datalist options to prevent the user from selecting a value that is not compatible with the existing type of the metadata entry
+    const optionEls = valueDatalist.querySelectorAll('option');
+    
+    
+    // If the existing type is binary, add the positive and negative values for that key to the value datalist for autocompletion
+    if (isBinary) {
+      const positiveVal = MetadataEntry.positiveBinaryValue;
+      const negativeVal = MetadataEntry.negativeBinaryValue;
+      
+      // Update the helper text to inform the user that only the positive and negative values are valid for a binary metadata entry
+      helperTextEl.innerHTML = `Enter either <span class="badge text-bg-info">${positiveVal}</span> or <span class="badge text-bg-info">${negativeVal}</span> for a binary metadata entry.`;
+
+      optionEls.forEach(optionEl => optionEl.remove());
+
+      [positiveVal, negativeVal].forEach(val => {
+        const optionEl = document.createElement('option');
+        optionEl.value = val;
+        optionEl.text = type;
+        optionEl.dataset.type = type;
+        valueDatalist.appendChild(optionEl);
+      });
+      return;
+
+    }
+
+    // If the existing type is categorical, add the existing categories for that key to the value datalist for autocompletion when the user is adding/editing the value for that key. This is done to prevent the user from accidentally adding new categories that they did not intend to add.
+    if (isCategorical) {
+      const categories = entry.categories;
+
+      optionEls.forEach(optionEl => optionEl.remove());
+      categories?.forEach?.(category => {
+        const optionEl = document.createElement('option');
+        optionEl.value = category;
+        optionEl.text = type;
+        optionEl.dataset.type = type;
+        valueDatalist.appendChild(optionEl);
+      });
+      return;
+
+    }
+
+    optionEls.forEach(optionEl => optionEl.hidden = false);
+
+    
+
+  }
+
+  /**
+   * Handles value datalist options and helper text when the value input element for a metadata entry loses focus. Resets the value datalist options to the default state and resets the helper text to the default value.
+   * @param {FocusEvent} e Blur event
+   * @throws {Error} If the value input element, key input element, type select element, row element or helper text element could not be found in the DOM
+   */
+  static handleValueInputBlur(e) {
+    Player.userStoppedTyping();
+    // Make sure the input element for the value of the metadata entry exists in the DOM
+    const valueInputEl = e.target;
+    if (!valueInputEl) return;
+    if (valueInputEl.getAttribute('name') !== 'metadata-value') return; 
+
+    // Make sure the player has a Metadata instance
+    const metadata = Player.getMetadata();
+    if (!(metadata instanceof Metadata)) {
+      throw new Error('Metadata instance could not be found on the player!');
+    }
+
+    // Get the value datalist element
+    const valueDatalist = document.getElementById('metadata-value-datalist');
+    if (!valueDatalist) return; 
+
+    // Get the element for displaying helper text under the key input element
+    const helperTextEl = MetadataEntry.helperTextEl
+    if (!helperTextEl) { 
+      throw new Error('Helper text element for key input could not be found in the DOM!');
+    }
+
+    // Reset the helper text to the default value
+    helperTextEl.textContent = MetadataEntry.defaultHelperText;
+
+
+
+  }
+
+
+
+  /**
+   * Handles the immediate changes in the value input element for a metadata entry. 
+   * @param {InputEvent} e Input event
+   * @returns 
+   * @throws {Error} If the input element for the value of the metadata entry could not be found in the DOM or if the key input or type select element for metadata entry manipulation could not be found in the DOM.
+   */
   static handleValueInput(e) {
     // Get the input element for the value of the metadata entry
     const valueInputEl = e.target;
     if (!valueInputEl) return;
     if (valueInputEl.getAttribute('name') !== 'metadata-value') return;
+
+    
 
     // Get the row element which is used for adding/editing metadata entries by the user
     const rowEl = valueInputEl.closest('tr');
@@ -9809,24 +9992,37 @@ f
     const isExistingEntry = existingEntry instanceof MetadataEntry;
     if (!isExistingEntry) return;
     
+    // Get the type
     const existingType = existingEntry.type ?? null;
 
     // Set the type select element to the existing type if it is not already set to that type
-    if (existingType !== null) {
+    if (!isNullish(existingType)) {
       typeSelectEl.value = existingType;
     } 
 
-    // Check if the existing type is categorical 
-    if (!MetadataEntry.isCategoricalType(existingType)) return;
+    if (MetadataEntry.isBinaryType(existingType)) {
+      const positiveVal = MetadataEntry.positiveBinaryValue;
+      const negativeVal = MetadataEntry.negativeBinaryValue;
+      helperTextEl.innerHTML = `Enter either <span class="badge text-bg-info">${positiveVal}</span> or <span class="badge text-bg-info">${negativeVal}</span> for a binary metadata entry.`;
+      return;
+    }
 
-    // If the entered value is not among the categories for this key, show a warning to the user that it will be added as a new category if they continue with saving the entry.
-    const existingCategories = existingEntry.categories;
-    const isNewCategory = !existingCategories?.has?.(value);
-   
-    const newCategoryText = `Saving will add <span class="badge text-bg-warning">${value}</span> as a <b>new category</b> to the entry with key <span class="badge text-bg-info">${key}</span>.`;
-    const existingCategoryText = `The value <span class="badge text-bg-success">${value}</span> already exists as a category for the entry with key <span class="badge text-bg-info">${key}</span>.`;
+    if (MetadataEntry.isCategoricalType(existingType)){
+      // If the entered value is not among the categories for this key, show a warning to the user that it will be added as a new category if they continue with saving the entry.
+      const existingCategories = existingEntry.categories;
+      const isNewCategory = !existingCategories?.has?.(value);
       
-    helperTextEl.innerHTML = isNewCategory ? newCategoryText : existingCategoryText;
+      const newCategoryText = `Saving will add <span class="badge text-bg-warning">${value}</span> as a <b>new category</b> to the entry with key <span class="badge text-bg-info">${key}</span>.`;
+      
+      const existingCategoryText = `The value <span class="badge text-bg-success">${value}</span> already exists as a category for the entry with key <span class="badge text-bg-info">${key}</span>.`;
+        
+      helperTextEl.innerHTML = isNewCategory ? newCategoryText : existingCategoryText;
+      return;
+    }
+
+    // Reset the helper text to the default value for all other types
+    helperTextEl.textContent = MetadataEntry.defaultHelperText;
+
 
 
   }
@@ -9900,7 +10096,7 @@ f
         showPopover({
           domEl: valueInputEl,
           title: 'Invalid Binary Value',
-          content: `Please enter either <span class="badge text-bg-dark">${positiveBinaryVal}</span> or <span class="badge text-bg-dark">${negativeBinaryVal}</span> for the binary type!`,
+          content: `Please enter either <span class="badge text-bg-dark">${positiveBinaryVal}</span> or <span class="badge text-bg-dark">${negativeBinaryVal}</span> for the binary type! ${error}`,
           type: 'error',
           placement: 'bottom'
         });
@@ -10087,7 +10283,7 @@ f
       const isNewType = existingEntry.type !== type;
       if (!isNewValue && !isNewType) return;
 
-      // Try to set and value and type
+      // Try to set value and type
       try {
         
         // Validate the value-type compatibility
@@ -10323,6 +10519,14 @@ class Metadata {
     this.updateActions();
     this.updateIndividuals();
     
+  }
+
+  /**
+   * Returns an array of all metadata entries.
+   * @returns {MetadataEntry[]} An array of all metadata entries.
+   */
+  getAllEntries() {
+    return Array.from(this.entries.values());
   }
 
   /**
