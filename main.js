@@ -128,7 +128,7 @@ updateElectronApp({
   updateInterval: '5 minutes'
 });
 
-const videoFormatNames = ['mkv', 'avi', 'mp4', 'webm', 'mov', 'mpeg', 'mpg', 'flv', 'ogg', 'ogv'];
+const videoFormatNames = ['mp4', 'mov', 'm4v', 'mkv', 'webm'];
 const videoExtensions = videoFormatNames.map(name => '.' + name)
 const configFileName = 'config.json';
 
