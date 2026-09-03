@@ -1,3 +1,8 @@
+## Version 0.5.5
+
+### Bug Fixes
+- Fix github-url-to-object installer bug
+
 ## Version 0.5.4
 
 ### Improvements
