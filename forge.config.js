@@ -19,11 +19,14 @@ const commonLinuxConfig = {
   packagerConfig: {
     asar: true,
     icon: 'icons/icon',
+    // Unanchored regexes matched against the app-relative path, not globs or
+    // folder names: an unanchored '.github' also matched (and emptied)
+    // node_modules/github-url-to-object, which update-electron-app requires.
     ignore: [
-      // 'examples', 
-      'installers',
-      'docs',
-      '.github'
+      // 'examples',
+      '^/installers',
+      '^/docs',
+      '^/\\.github'
     ],
     osxSign: {
       identity: 'Developer ID Application'
