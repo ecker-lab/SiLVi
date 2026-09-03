@@ -1,3 +1,13 @@
+## Version 0.6.1
+
+### Improvements
+- Video-level annotation support
+- Support for QuickTime (.mov), .m4v and .webm video files
+- Video file extensions are now matched case-insensitively (.MOV, .MP4)
+
+### Bug Fixes
+- Removed .avi from the file picker; the format could never be played
+
 ## Version 0.5.4
 
 ### Improvements
