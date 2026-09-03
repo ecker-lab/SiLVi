@@ -284,7 +284,7 @@ async function handleGetVideosFromDir(experimentDir) {
   }
   
   const isVideo = filePath => {
-    return videoExtensions.includes(path.extname(filePath))
+    return videoExtensions.includes(path.extname(filePath).toLowerCase())
   }
   
   // const videoDirPath = path.join(__dirname, 'Experiment', 'Videos')
@@ -994,7 +994,7 @@ function handleGetFileNameWithoutExtension(filePath) {
 async function handleOpenSingleVideo() {      
   const { canceled, filePaths } = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
     title: 'Choose a video',
-    filters: [{ name: 'Movies', extensions: ['mkv', 'avi', 'mp4'] }],
+    filters: [{ name: 'Movies', extensions: videoFormatNames }],
     properties: ['openFile'],
     message: "Choose a video"
   })
@@ -1028,7 +1028,7 @@ async function handleOpenSingleFile(fileType) {
 async function handleOpenMultipleVideos() {      
   const { canceled, filePaths } = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
     title: 'Choose video files as secondary views',
-    filters: [{ name: 'Movies', extensions: ['mkv', 'avi', 'mp4'] }],
+    filters: [{ name: 'Movies', extensions: videoFormatNames }],
     properties: ['openFile', 'multiSelections'],
     message: "Choose video files as secondary views"
   })

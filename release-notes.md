@@ -1,3 +1,12 @@
+## Version 0.5.4
+
+### Improvements
+- Support for QuickTime (.mov), .m4v and .webm video files
+- Video file extensions are now matched case-insensitively (.MOV, .MP4)
+
+### Bug Fixes
+- Removed .avi from the file picker; the format could never be played
+
 ## Version 0.5.0
 ### New Features
 - Assigning names and colors to species
