@@ -1,6 +1,6 @@
 {
   "name": "SiLVi",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Simple Interface for Labeling Video Interactions",
   "repository": "github:ecker-lab/SiLVi",
   "main": "main.js",
